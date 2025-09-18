@@ -1,0 +1,28 @@
+name: Test CD
+
+on:
+  push:
+    branches: [master]
+
+env:
+  SERVER_HOST: 94.130.33.123
+  SERVER_USERNAME: root
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_PASSWORD }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Connect to server and deploy changes
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SERVER_HOST }}
+          username: ${{ env.SERVER_USERNAME }}
+          password: ${{ env.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/advice_market/advice_market_admin/
+            git pull
+            npm install
+            ng build
+            sudo rsync -av --delete /root/advice_market/advice_market_admin/dist/fuse/ /var/www/advice_market_admin/

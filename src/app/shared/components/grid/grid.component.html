@@ -1,0 +1,81 @@
+<app-wrapper-basic [title]="titleTopShow ? title : ''">
+  <ng-container titleLeft>
+    <ng-container *ngTemplateOutlet="titleTemplate; context: { $implicit: dt }"></ng-container>
+  </ng-container>
+  <ng-container titleRight>
+    <ng-content select="[titleRight]"></ng-content>
+    <div class="flex justify-end items-center gap-4">
+      @if (showExportButtons) {
+        <button
+          pButton
+          severity="secondary"
+          class="btn btn-secondary"
+          icon="pi pi-file-excel"
+          title="Excel"
+          (click)="exportTableToExcel()"
+        ></button>
+        <button
+          pButton
+          severity="secondary"
+          class="btn btn-secondary"
+          icon="pi pi-file-export"
+          title="CSV"
+          (click)="dt?.exportCSV()"
+        ></button>
+      }
+    </div>
+  </ng-container>
+  <div body>
+    <ng-container *ngTemplateOutlet="templateFilters; context: { $implicit: dt }"></ng-container>
+
+    <div>
+      <div class="header flex justify-between items-center my-2">
+        @if (title; as t) {
+          <ng-container>
+            @if (isTemplateRef(t)) {
+              <ng-container *ngTemplateOutlet="t"></ng-container>
+            } @else {
+              <h2>{{ t }}</h2>
+            }
+          </ng-container>
+        }
+
+        @if (showAddButton) {
+          <button mat-raised-button color="primary" (click)="onClickAdd.emit()">
+            <mat-icon *ngIf="addButtonIcon" class="me-2">{{ addButtonIcon }}</mat-icon>
+            {{ addButtonText | transloco }}
+          </button>
+        }
+      </div>
+
+      <div class="bg-white">
+        <table #dt mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+          <ng-container *ngFor="let col of columns" [matColumnDef]="col.field">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ col.header }}</th>
+            <td mat-cell *matCellDef="let row">
+              {{ row[col.field] }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            (click)="handleRowClick(row)"
+            class="cursor-pointer transition"
+          ></tr>
+        </table>
+
+        <div class="flex justify-end">
+          <mat-paginator
+            [length]="$data.totalRecords"
+            [pageSize]="$data.pageEvent.pageSize"
+            [pageIndex]="$data.pageEvent.pageIndex"
+            [pageSizeOptions]="[5, 10, 20]"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-wrapper-basic>

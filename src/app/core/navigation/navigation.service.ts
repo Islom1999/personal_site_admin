@@ -1,0 +1,75 @@
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { FuseNavigationItem } from '@fuse/components/navigation';
+import { Navigation } from 'app/core/navigation/navigation.types';
+import { cloneDeep } from 'lodash';
+import { Observable, of, ReplaySubject, tap } from 'rxjs';
+import { defaultNavigation } from './navigation';
+
+@Injectable({ providedIn: 'root' })
+export class NavigationService {
+    private _httpClient = inject(HttpClient);
+    private _navigation: ReplaySubject<Navigation> = new ReplaySubject<Navigation>(1);
+
+    private readonly _compactNavigation: FuseNavigationItem[] = defaultNavigation;
+    private readonly _defaultNavigation: FuseNavigationItem[] = defaultNavigation;
+    private readonly _futuristicNavigation: FuseNavigationItem[] = defaultNavigation;
+    private readonly _horizontalNavigation: FuseNavigationItem[] = defaultNavigation;
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Accessors
+    // -----------------------------------------------------------------------------------------------------
+
+    /**
+     * Getter for navigation
+     */
+    get navigation$(): Observable<Navigation> {
+        return this._navigation.asObservable();
+    }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
+
+    /**
+     * Get all navigation data
+     */
+    get(): Observable<Navigation> {
+        this._compactNavigation.forEach((compactNavItem) => {
+            this._defaultNavigation.forEach((defaultNavItem) => {
+                if (defaultNavItem.id === compactNavItem.id) {
+                    compactNavItem.children = cloneDeep(defaultNavItem.children);
+                }
+            });
+        });
+
+        // Fill futuristic navigation children using the default navigation
+        this._futuristicNavigation.forEach((futuristicNavItem) => {
+            this._defaultNavigation.forEach((defaultNavItem) => {
+                if (defaultNavItem.id === futuristicNavItem.id) {
+                    futuristicNavItem.children = cloneDeep(defaultNavItem.children);
+                }
+            });
+        });
+
+        // Fill horizontal navigation children using the default navigation
+        this._horizontalNavigation.forEach((horizontalNavItem) => {
+            this._defaultNavigation.forEach((defaultNavItem) => {
+                if (defaultNavItem.id === horizontalNavItem.id) {
+                    horizontalNavItem.children = cloneDeep(defaultNavItem.children);
+                }
+            });
+        });
+
+        return of({
+            compact: cloneDeep(this._compactNavigation),
+            default: cloneDeep(this._defaultNavigation),
+            futuristic: cloneDeep(this._futuristicNavigation),
+            horizontal: cloneDeep(this._horizontalNavigation),
+        }).pipe(
+            tap((navigation) => {
+                this._navigation.next(navigation);
+            })
+        )
+    }
+}

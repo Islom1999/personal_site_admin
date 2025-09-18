@@ -1,0 +1,11 @@
+/* ----------------------------------------------------------------------------------------------------- */
+/*  @ Import/write your custom styles here.
+/*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
+/* ----------------------------------------------------------------------------------------------------- */
+
+.mat-mdc-dialog-surface {
+  max-height: calc(100vh - 100px) !important;
+}
+.mat-mdc-dialog-surface::-webkit-scrollbar {
+  display: none;
+}

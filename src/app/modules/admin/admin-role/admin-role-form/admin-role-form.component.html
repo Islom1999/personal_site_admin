@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>{{ data?.adminRole ? 'Tahrirlash' : "Yangi qo'shish" }}</h2>
+
+<form class="flex flex-col gap-2 mt-4" [formGroup]="form" (ngSubmit)="submit()" mat-dialog-content>
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Description</mat-label>
+      <input matInput formControlName="description" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Ruxsatnomalar</mat-label>
+      <mat-select
+        multiple
+        (selectionChange)="onPermissionSelect($event)"
+        [value]="getSelectedPermissionIds()"
+      >
+        @for (permission of permissions(); track permission.id) {
+          <mat-option [value]="permission.id">{{ permission.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div mat-dialog-actions>
+    <div class="flex justify-between">
+      <div class="item">
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          Saqlash
+        </button>
+        <button mat-button type="button" (click)="dialogRef.close()">Bekor qilish</button>
+      </div>
+      <div class="item">
+        @if (data?.adminRole) {
+          <button mat-button type="button" color="warn" (click)="delete()">O'chirish</button>
+        }
+      </div>
+    </div>
+  </div>
+</form>
