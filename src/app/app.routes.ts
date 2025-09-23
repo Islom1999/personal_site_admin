@@ -3,6 +3,7 @@ import { initialDataResolver } from 'app/app.resolvers'
 import { AuthGuard } from 'app/core/auth/guards/auth.guard'
 import { NoAuthGuard } from 'app/core/auth/guards/noAuth.guard'
 import { LayoutComponent } from 'app/layout/layout.component'
+import { PermissionGuard } from './core/auth/guards/permission.guard'
 
 // @formatter:off
 /* eslint-disable max-len */
@@ -78,6 +79,10 @@ export const appRoutes: Route[] = [
       {
         path: 'admin-permission',
         loadChildren: () => import('app/modules/admin/admin-permission/admin-permission.routes'),
+        canActivate: [PermissionGuard],
+        data: {
+          permissions: ['super'],
+        },
       },
       {
         path: 'admin-role',
