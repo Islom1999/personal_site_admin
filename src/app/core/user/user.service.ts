@@ -29,6 +29,14 @@ export class UserService
         return this._user.asObservable();
     }
 
+  get permissions$(): Observable<string[]> {
+    return this._user.asObservable().pipe(
+      map((data) => {
+        return data.role.admin_role_permissions.map((p) => p.permission.key)
+      }),
+    )
+  }
+
     // -----------------------------------------------------------------------------------------------------
     // @ Public methods
     // -----------------------------------------------------------------------------------------------------
