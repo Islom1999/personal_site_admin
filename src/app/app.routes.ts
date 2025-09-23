@@ -100,6 +100,10 @@ export const appRoutes: Route[] = [
         loadChildren: () => import('app/modules/admin/sp-materials/sp-materials.routes'),
       },
       {
+        path: 'sp-tests',
+        loadChildren: () => import('app/modules/admin/sp-tests/sp-tests.routes'),
+      },
+      {
         path: 'translation',
         loadChildren: () => import('app/modules/admin/translations/translations.routes'),
       },

@@ -1,0 +1,14 @@
+:host {
+  display: block;
+}
+
+.pi {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.mat-mdc-dialog-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}

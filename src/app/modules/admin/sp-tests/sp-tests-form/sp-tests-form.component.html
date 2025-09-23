@@ -1,1 +1,185 @@
-<p>sp-tests-form works!</p>
+<h2 mat-dialog-title>{{ data?.spTests ? 'Tahrirlash' : "Yangi qo'shish" }}</h2>
+
+<form class="flex flex-col gap-2 mt-4" [formGroup]="form" (ngSubmit)="submit()" mat-dialog-content>
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Icon</mat-label>
+      <mat-select formControlName="icon">
+        @for (icon of primeIcons; track icon) {
+          <mat-option [value]="icon">
+            <div class="flex items-center gap-2">
+              <i [class]="'pi pi-' + icon"></i>
+              <span>{{ icon }}</span>
+            </div>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Uz)</mat-label>
+      <input matInput formControlName="name_uz" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Kr)</mat-label>
+      <input matInput formControlName="name_kr" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Ru)</mat-label>
+      <input matInput formControlName="name_ru" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Description (Uz)</mat-label>
+      <textarea matInput formControlName="description_uz" rows="3"></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Description (Kr)</mat-label>
+      <textarea matInput formControlName="description_kr" rows="3"></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Description (Ru)</mat-label>
+      <textarea matInput formControlName="description_ru" rows="3"></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="flex gap-2">
+    <div class="item flex-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Duration (minutes)</mat-label>
+        <input matInput type="number" formControlName="duration" />
+      </mat-form-field>
+    </div>
+
+    <div class="item flex-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Code</mat-label>
+        <input matInput formControlName="code" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="flex gap-2">
+    <div class="item flex-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SP Category</mat-label>
+        <mat-select formControlName="sp_category_id">
+          @for (category of categories(); track category.id) {
+            <mat-option [value]="category.id">{{ category.name_uz }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="item flex-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SP Level</mat-label>
+        <mat-select formControlName="sp_level_id">
+          @for (level of levels(); track level.id) {
+            <mat-option [value]="level.id">{{ level.name_uz }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Questions Section -->
+  <div class="mt-4">
+    <div class="flex justify-between items-center mb-2">
+      <h3 class="text-lg font-medium">Savollar</h3>
+      <button type="button" mat-raised-button color="accent" (click)="addQuestion()">
+        <mat-icon>add</mat-icon>
+        Savol qo'shish
+      </button>
+    </div>
+
+    <div formArrayName="sp_tests_quessions" class="space-y-4">
+      @for (questionControl of questionsArray.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="border rounded-lg p-4 bg-gray-50">
+          <div class="flex justify-between items-start mb-2">
+            <h4 class="font-medium">Savol {{ i + 1 }}</h4>
+            <button type="button" mat-icon-button color="warn" (click)="removeQuestion(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <div class="item mb-2">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Savol matni</mat-label>
+              <textarea matInput formControlName="question" rows="2"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="item mb-2">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Tushuntirish</mat-label>
+              <textarea matInput formControlName="explanation" rows="2"></textarea>
+            </mat-form-field>
+          </div>
+
+          <!-- Options Section -->
+          <div class="mt-2">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-medium">Javob variantlari</span>
+              <button type="button" mat-button color="primary" (click)="addOption(i)">
+                <mat-icon>add</mat-icon>
+                Variant qo'shish
+              </button>
+            </div>
+
+            <div formArrayName="sp_quession_options" class="space-y-2">
+              @for (optionControl of getOptionsArray(i).controls; track $index; let j = $index) {
+                <div [formGroupName]="j" class="flex items-center gap-2 bg-white p-2 rounded border">
+                  <mat-form-field appearance="outline" class="flex-1">
+                    <mat-label>Variant {{ j + 1 }}</mat-label>
+                    <input matInput formControlName="text" />
+                  </mat-form-field>
+                  
+                  <mat-checkbox formControlName="is_result" color="primary">
+                    To'g'ri javob
+                  </mat-checkbox>
+                  
+                  <button type="button" mat-icon-button color="warn" (click)="removeOption(i, j)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div mat-dialog-actions>
+    <div class="flex justify-between">
+      <div class="item">
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          Saqlash
+        </button>
+        <button mat-button type="button" (click)="dialogRef.close()">Bekor qilish</button>
+      </div>
+      <div class="item">
+        @if (data?.spTests) {
+          <button mat-button type="button" color="warn" (click)="delete()">O'chirish</button>
+        }
+      </div>
+    </div>
+  </div>
+</form>
