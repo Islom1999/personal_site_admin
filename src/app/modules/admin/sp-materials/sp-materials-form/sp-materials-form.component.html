@@ -1,1 +1,112 @@
-<p>sp-materials-form works!</p>
+<h2 mat-dialog-title>{{ data?.spMaterials ? 'Tahrirlash' : "Yangi qo'shish" }}</h2>
+
+<form class="flex flex-col gap-2 mt-4" [formGroup]="form" (ngSubmit)="submit()" mat-dialog-content>
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Icon</mat-label>
+      <mat-select formControlName="icon">
+        @for (icon of primeIcons; track icon) {
+          <mat-option [value]="icon">
+            <div class="flex items-center gap-2">
+              <i [class]="'pi pi-' + icon"></i>
+              <span>{{ icon }}</span>
+            </div>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Uz)</mat-label>
+      <input matInput formControlName="name_uz" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Kr)</mat-label>
+      <input matInput formControlName="name_kr" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Ru)</mat-label>
+      <input matInput formControlName="name_ru" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Description (Uz)</mat-label>
+      <textarea matInput formControlName="description_uz" rows="3"></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Description (Kr)</mat-label>
+      <textarea matInput formControlName="description_kr" rows="3"></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Description (Ru)</mat-label>
+      <textarea matInput formControlName="description_ru" rows="3"></textarea>
+    </mat-form-field>
+  </div>
+
+  <div class="flex gap-2">
+    <div class="item flex-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SP Category</mat-label>
+        <mat-select formControlName="sp_category_id">
+          @for (category of categories(); track category.id) {
+            <mat-option [value]="category.id">{{ category.name_uz }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="item flex-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SP Level</mat-label>
+        <mat-select formControlName="sp_level_id">
+          @for (level of levels(); track level.id) {
+            <mat-option [value]="level.id">{{ level.name_uz }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="item">
+    <label class="block text-sm font-medium mb-2">Fayl yuklash</label>
+    <app-upload-file
+      [multiple]="false"
+      [acceptType]="fileType.pdf"
+      [uploadUrl]="'https://api.personal.topsites.uz/api/files/upload'"
+      [files]="selectedFiles"
+      (fileSelected)="onFileSelected($event)"
+    ></app-upload-file>
+  </div>
+
+  <div mat-dialog-actions>
+    <div class="flex justify-between">
+      <div class="item">
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          Saqlash
+        </button>
+        <button mat-button type="button" (click)="dialogRef.close()">Bekor qilish</button>
+      </div>
+      <div class="item">
+        @if (data?.spMaterials) {
+          <button mat-button type="button" color="warn" (click)="delete()">O'chirish</button>
+        }
+      </div>
+    </div>
+  </div>
+</form>

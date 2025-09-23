@@ -17,6 +17,8 @@ import { FileType } from 'app/shared/enums/file_type'
 import { UploadFileService } from './common/upload-file.service'
 import { IUploadFile, UploadFileData } from './common/upload-file.model'
 
+export { UploadFileData } from './common/upload-file.model'
+
 @Component({
   selector: 'app-upload-file',
   standalone: true,

@@ -96,6 +96,10 @@ export const appRoutes: Route[] = [
         loadChildren: () => import('app/modules/admin/sp-category/sp-category.routes'),
       },
       {
+        path: 'sp-materials',
+        loadChildren: () => import('app/modules/admin/sp-materials/sp-materials.routes'),
+      },
+      {
         path: 'translation',
         loadChildren: () => import('app/modules/admin/translations/translations.routes'),
       },

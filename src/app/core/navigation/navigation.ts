@@ -38,6 +38,13 @@ export const defaultNavigation: FuseNavigationItem[] = [
     link: '/sp-category',
   },
   {
+    id: 'sp-materials',
+    title: 'SP Materials',
+    type: 'basic',
+    icon: 'heroicons_outline:adjustments-vertical',
+    link: '/sp-materials',
+  },
+  {
     id: 'translation',
     title: 'Translation',
     type: 'basic',

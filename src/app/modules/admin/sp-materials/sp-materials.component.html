@@ -1,1 +1,7 @@
-<p>sp-materials works!</p>
+<app-grid
+  [title]="'Materiallar ro\'yhati'"
+  [columns]="columns"
+  [showAddButton]="true"
+  (onClickAdd)="onClickAdd($event)"
+  (onRowSelect)="onRowSelect($event)"
+></app-grid>
