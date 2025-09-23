@@ -9,7 +9,6 @@ export interface ISpTests extends IBaseModel {
   description_kr: string
   icon: string
   duration: number
-  code: string
   sp_category_id: string
   sp_level_id: string
   sp_tests_quessions: ISpTestsQuession[]

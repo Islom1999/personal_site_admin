@@ -67,7 +67,15 @@
       }
 
       <span class="text-sm text-gray-500">
-        {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
+        <a
+          *ngIf="getFilePreview(fileItem)"
+          [href]="getFilePreview(fileItem)"
+          target="_blank"
+          download
+          class="text-blue-600 underline"
+        >
+          {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
+        </a>
         @if (fileItem.file?.size) {
           {{
             fileItem.file.size >= 1024 * 1024

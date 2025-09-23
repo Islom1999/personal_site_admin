@@ -1,8 +1,15 @@
-<app-wrapper-basic [title]="isEditMode ? 'Kursni tahrirlash' : 'Yangi kurs qo\'shish'" [breadcrumbs]="breadcrumbs">
+<app-wrapper-basic
+  [title]="isEditMode ? 'Kursni tahrirlash' : 'Yangi kurs qo\'shish'"
+  [breadcrumbs]="breadcrumbs"
+>
   <div body>
-    <form class="flex flex-col gap-4 p-6 bg-white rounded-lg shadow" [formGroup]="form" (ngSubmit)="submit()">
+    <form
+      class="flex flex-col gap-4 p-6 bg-white rounded-lg shadow"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
       <!-- Basic Information -->
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-3 gap-4">
         <div class="item">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Name (Uz)</mat-label>
@@ -21,13 +28,6 @@
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Name (Ru)</mat-label>
             <input matInput formControlName="name_ru" />
-          </mat-form-field>
-        </div>
-
-        <div class="item">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Code</mat-label>
-            <input matInput formControlName="code" />
           </mat-form-field>
         </div>
       </div>
@@ -71,32 +71,13 @@
             <input matInput formControlName="duration" />
           </mat-form-field>
         </div>
+      </div>
 
+      <div class="grid grid-cols-3 gap-4">
         <div class="item">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Rating</mat-label>
             <input matInput type="number" step="0.1" min="0" max="5" formControlName="rating" />
-          </mat-form-field>
-        </div>
-
-        <div class="item">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Price</mat-label>
-            <input matInput type="number" min="0" formControlName="price" />
-          </mat-form-field>
-        </div>
-      </div>
-
-      <!-- Premium Type and Selects -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="item">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Premium Type</mat-label>
-            <mat-select formControlName="premium_type">
-              <mat-option value="free">Free</mat-option>
-              <mat-option value="premium">Premium</mat-option>
-              <mat-option value="pro">Pro</mat-option>
-            </mat-select>
           </mat-form-field>
         </div>
 
@@ -124,10 +105,31 @@
       </div>
 
       <!-- Tags -->
+      <!-- <div class="item">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Tags</mat-label>
+          <input matInput formControlName="tags" />
+        </mat-form-field>
+      </div> -->
+
       <div class="item">
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Tags (comma separated)</mat-label>
-          <input matInput formControlName="tagsString" placeholder="javascript, react, frontend" />
+          <mat-label>Tags</mat-label>
+          <mat-chip-grid #chipList>
+            @for (tag of tags; track $index) {
+              <mat-chip-row [removable]="true" (removed)="removeTag(tag)">
+                {{ tag }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip-row>
+            }
+            <input
+              placeholder="Tag qo'shish"
+              [matChipInputFor]="chipList"
+              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addTag($event)"
+            />
+          </mat-chip-grid>
         </mat-form-field>
       </div>
 
@@ -137,7 +139,7 @@
         <app-upload-file
           [multiple]="false"
           [acceptType]="fileType.image"
-          [uploadUrl]="'https://api.personal.topsites.uz/api/files/upload'"
+          [uploadUrl]="baseUploadFileUrl"
           [files]="selectedImageFiles"
           (fileSelected)="onImageSelected($event)"
         ></app-upload-file>
@@ -192,13 +194,6 @@
                     <input matInput formControlName="duration" />
                   </mat-form-field>
                 </div>
-
-                <div class="item col-span-2">
-                  <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Code</mat-label>
-                    <input matInput formControlName="code" />
-                  </mat-form-field>
-                </div>
               </div>
 
               <!-- Module Parts -->
@@ -212,11 +207,20 @@
                 </div>
 
                 <div formArrayName="sp_courses_module_parts" class="space-y-3">
-                  @for (partControl of getModulePartsArray(i).controls; track $index; let j = $index) {
+                  @for (
+                    partControl of getModulePartsArray(i).controls;
+                    track $index;
+                    let j = $index
+                  ) {
                     <div [formGroupName]="j" class="bg-white p-3 rounded border">
                       <div class="flex justify-between items-start mb-2">
                         <span class="text-sm font-medium">Qism {{ j + 1 }}</span>
-                        <button type="button" mat-icon-button color="warn" (click)="removeModulePart(i, j)">
+                        <button
+                          type="button"
+                          mat-icon-button
+                          color="warn"
+                          (click)="removeModulePart(i, j)"
+                        >
                           <mat-icon>delete</mat-icon>
                         </button>
                       </div>
@@ -269,7 +273,7 @@
                           <app-upload-file
                             [multiple]="false"
                             [acceptType]="fileType.video"
-                            [uploadUrl]="'https://api.personal.topsites.uz/api/files/upload'"
+                            [uploadUrl]="baseUploadFileVideoUrl"
                             [files]="getSelectedVideoFiles(i, j)"
                             (fileSelected)="onVideoSelected($event, i, j)"
                           ></app-upload-file>
@@ -300,15 +304,14 @@
           <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
             Saqlash
           </button>
-          <button mat-button type="button" (click)="cancel()">
-            Bekor qilish
-          </button>
+          <button mat-button type="button" (click)="cancel()">Bekor qilish</button>
         </div>
         <div class="item">
           @if (isEditMode) {
-            <button mat-button type="button" color="warn" (click)="delete()">
-              O'chirish
-            </button>
+            <button mat-button type="button" color="warn" (click)="delete()">O'chirish</button>
           }
         </div>
       </div>
+    </form>
+  </div></app-wrapper-basic
+>

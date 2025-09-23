@@ -42,7 +42,7 @@ export class SpTestsFormComponent implements OnInit {
   testId: string | null = null
   breadcrumbs = [
     { label: 'Testlar', routerLink: '/sp-tests' },
-    { label: 'Yangi test', routerLink: '' }
+    { label: 'Yangi test', routerLink: '' },
   ]
 
   categories = toSignal(this.$categoryService.getAll(), {
@@ -237,7 +237,7 @@ export class SpTestsFormComponent implements OnInit {
     'stripe',
     'visa',
     'mastercard',
-    'american-express'
+    'american-express',
   ]
 
   form = this.fb.group({
@@ -249,7 +249,6 @@ export class SpTestsFormComponent implements OnInit {
     description_kr: ['', Validators.required],
     description_ru: ['', Validators.required],
     duration: [0, [Validators.required, Validators.min(1)]],
-    code: ['', Validators.required],
     sp_category_id: ['', Validators.required],
     sp_level_id: ['', Validators.required],
     sp_tests_quessions: this.fb.array([]),
@@ -258,7 +257,7 @@ export class SpTestsFormComponent implements OnInit {
   ngOnInit() {
     this.testId = this.route.snapshot.paramMap.get('id')
     this.isEditMode = !!this.testId
-    
+
     if (this.isEditMode) {
       this.breadcrumbs[1].label = 'Testni tahrirlash'
       this.loadTest()
@@ -267,7 +266,7 @@ export class SpTestsFormComponent implements OnInit {
 
   private loadTest() {
     if (this.testId) {
-      this.$service.getById(this.testId).subscribe(test => {
+      this.$service.getById(this.testId).subscribe((test) => {
         this.loadTestData(test)
       })
     }
@@ -275,24 +274,26 @@ export class SpTestsFormComponent implements OnInit {
 
   private loadTestData(test: ISpTests) {
     this.form.patchValue(test)
-    
+
     // Load existing questions
     if (test.sp_tests_quessions?.length) {
-      test.sp_tests_quessions.forEach(question => {
+      test.sp_tests_quessions.forEach((question) => {
         const questionGroup = this.fb.group({
           question: [question.question, Validators.required],
           explanation: [question.explanation],
-          sp_quession_options: this.fb.array([])
+          sp_quession_options: this.fb.array([]),
         })
 
         // Load existing options
         if (question.sp_quession_options?.length) {
           const optionsArray = questionGroup.get('sp_quession_options') as FormArray
-          question.sp_quession_options.forEach(option => {
-            optionsArray.push(this.fb.group({
-              text: [option.text, Validators.required],
-              is_result: [option.is_result, Validators.required]
-            }))
+          question.sp_quession_options.forEach((option) => {
+            optionsArray.push(
+              this.fb.group({
+                text: [option.text, Validators.required],
+                is_result: [option.is_result, Validators.required],
+              }),
+            )
           })
         }
 
@@ -309,7 +310,7 @@ export class SpTestsFormComponent implements OnInit {
     const questionGroup = this.fb.group({
       question: ['', Validators.required],
       explanation: [''],
-      sp_quession_options: this.fb.array([])
+      sp_quession_options: this.fb.array([]),
     })
     this.questionsArray.push(questionGroup)
   }
@@ -325,7 +326,7 @@ export class SpTestsFormComponent implements OnInit {
   addOption(questionIndex: number) {
     const optionGroup = this.fb.group({
       text: ['', Validators.required],
-      is_result: [false, Validators.required]
+      is_result: [false, Validators.required],
     })
     this.getOptionsArray(questionIndex).push(optionGroup)
   }
@@ -337,7 +338,7 @@ export class SpTestsFormComponent implements OnInit {
   submit() {
     if (this.form.valid) {
       const formData = { ...this.form.value }
-      
+
       if (this.isEditMode && this.testId) {
         this.$service.update(this.testId, formData as any).subscribe({
           next: () => {

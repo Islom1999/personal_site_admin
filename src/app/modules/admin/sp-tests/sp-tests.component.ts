@@ -42,10 +42,12 @@ export class SpTestsComponent {
   ]
 
   onClickAdd(event: any) {
-    this.router.navigate(['add'], { relativeTo: this.router.routerState.root.firstChild })
+    this.router.navigate(['/sp-tests/add'], { relativeTo: this.router.routerState.root.firstChild })
   }
 
   onRowSelect(event: ISpTests) {
-    this.router.navigate(['edit', event.id], { relativeTo: this.router.routerState.root.firstChild })
+    this.router.navigate(['/sp-tests/edit', event.id], {
+      relativeTo: this.router.routerState.root.firstChild,
+    })
   }
 }

@@ -11,6 +11,8 @@ import { PermissionGuard } from './core/auth/guards/permission.guard'
 export const appRoutes: Route[] = [
   { path: '', pathMatch: 'full', redirectTo: 'admin-user' },
 
+  { path: '403', redirectTo: 'sign-in' },
+
   { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: 'admin-user' },
 
   // Auth routes for guests

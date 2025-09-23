@@ -90,7 +90,7 @@ export class UploadFileComponent implements OnChanges {
       const type = this.detectFileType(file)
       if (!type) continue
 
-      const maxSize = this.maxSizeOverride ?? this.FILE_MAX_SIZE[FileType.image]
+      const maxSize = this.maxSizeOverride ?? this.FILE_MAX_SIZE[this.acceptType]
       if (file?.size > maxSize) continue
 
       validFiles.push(file)

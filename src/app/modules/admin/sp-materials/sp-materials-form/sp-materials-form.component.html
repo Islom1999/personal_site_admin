@@ -88,7 +88,7 @@
     <app-upload-file
       [multiple]="false"
       [acceptType]="fileType.pdf"
-      [uploadUrl]="'https://api.personal.topsites.uz/api/files/upload'"
+      [uploadUrl]="baseUploadFileUrl"
       [files]="selectedFiles"
       (fileSelected)="onFileSelected($event)"
     ></app-upload-file>

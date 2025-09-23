@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core'
 import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http'
 import { Observable } from 'rxjs'
 import { IUploadFile } from './upload-file.model'
+import { environment } from 'environments/environment'
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +13,7 @@ export class UploadFileService {
   }
   constructor(private http: HttpClient) {}
 
-  public baseFileUrl = `https://api.yuristmarket.uz/api/files`
+  public baseFileUrl = `${environment.endpoint}/files`
 
   /**
    * Bitta faylni upload qilish

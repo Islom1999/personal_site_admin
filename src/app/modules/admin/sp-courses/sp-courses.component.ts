@@ -54,10 +54,14 @@ export class SpCoursesComponent {
   ]
 
   onClickAdd(event: any) {
-    this.router.navigate(['add'], { relativeTo: this.router.routerState.root.firstChild })
+    this.router.navigate(['/sp-courses/add'], {
+      relativeTo: this.router.routerState.root.firstChild,
+    })
   }
 
   onRowSelect(event: ISpCourses) {
-    this.router.navigate(['edit', event.id], { relativeTo: this.router.routerState.root.firstChild })
+    this.router.navigate(['/sp-courses/edit', event.id], {
+      relativeTo: this.router.routerState.root.firstChild,
+    })
   }
 }
