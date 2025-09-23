@@ -5,11 +5,15 @@ import { Navigation } from 'app/core/navigation/navigation.types';
 import { cloneDeep } from 'lodash';
 import { Observable, of, ReplaySubject, tap } from 'rxjs';
 import { defaultNavigation } from './navigation';
+import { UserService } from '../user/user.service'
+import { toSignal } from '@angular/core/rxjs-interop'
 
 @Injectable({ providedIn: 'root' })
 export class NavigationService {
     private _httpClient = inject(HttpClient);
     private _navigation: ReplaySubject<Navigation> = new ReplaySubject<Navigation>(1);
+    private _userService = inject(UserService)
+    private permissions = toSignal(this._userService.permissions$)
 
     private readonly _compactNavigation: FuseNavigationItem[] = defaultNavigation;
     private readonly _defaultNavigation: FuseNavigationItem[] = defaultNavigation;
