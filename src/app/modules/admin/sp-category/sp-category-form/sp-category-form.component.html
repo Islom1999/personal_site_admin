@@ -4,7 +4,16 @@
   <div class="item">
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Icon</mat-label>
-      <input matInput formControlName="icon" />
+      <mat-select formControlName="icon">
+        @for (icon of primeIcons; track icon) {
+          <mat-option [value]="icon">
+            <div class="flex items-center gap-2">
+              <i [class]="'pi pi-' + icon"></i>
+              <span>{{ icon }}</span>
+            </div>
+          </mat-option>
+        }
+      </mat-select>
     </mat-form-field>
   </div>
 
