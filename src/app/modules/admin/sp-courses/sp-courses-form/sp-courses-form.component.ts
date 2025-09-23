@@ -14,6 +14,26 @@ import { SpLevelService } from '../../sp-level/common/sp-level.service'
 import { ISpCourses } from '../common/sp-courses.model'
 import { SpCoursesService } from '../common/sp-courses.service'
 
+interface SpCoursesFormValue {
+  name_uz: string
+  name_kr: string
+  name_ru: string
+  description_uz: string
+  description_kr: string
+  description_ru: string
+  instructor: string
+  duration: string
+  rating: string
+  premium_type: string
+  price: number
+  tagsString: string
+  code: string
+  sp_category_id: string
+  sp_level_id: string
+  file_image_id: string
+  sp_courses_modules: any[]
+}
+
 @Component({
   selector: 'app-sp-courses-form',
   imports: [
@@ -218,18 +238,19 @@ export class SpCoursesFormComponent {
 
   submit() {
     if (this.form.valid) {
-      const formData = { ...this.form.value }
+      const formValue = this.form.value as SpCoursesFormValue
+      const payload: Partial<ISpCourses> = { ...formValue }
       
       // Convert tags string to array
-      if (formData.tagsString) {
-        formData.tags = formData.tagsString.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
-        delete formData.tagsString
+      if (formValue.tagsString) {
+        payload.tags = formValue.tagsString.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
       } else {
-        formData.tags = []
+        payload.tags = []
       }
+      delete (payload as any).tagsString
       
       if (this.data.spCourses) {
-        this.$service.update(this.data.spCourses.id, formData as any).subscribe({
+        this.$service.update(this.data.spCourses.id, payload).subscribe({
           next: () => {
             this.dialogRef.close(true)
           },
@@ -238,7 +259,7 @@ export class SpCoursesFormComponent {
           },
         })
       } else {
-        this.$service.create(formData as any).subscribe({
+        this.$service.create(payload).subscribe({
           next: () => {
             this.dialogRef.close(true)
           },
