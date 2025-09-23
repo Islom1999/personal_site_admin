@@ -36,6 +36,8 @@
         "ngx-doc-viewer": "^15.0.1",
         "ngx-quill": "^28.0.1",
         "perfect-scrollbar": "1.5.5",
+        "primeicons": "^7.0.0",
+        "primeng": "^20.1.2",
         "quill": "^2.0.3",
         "rxjs": "7.8.1",
         "tslib": "2.6.2",
