@@ -5,6 +5,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
   {
     id: 'admin-management',
     title: 'Admin Management',
+    permissions: ['super', 'admin-permission-read', 'admin-role-read', 'admin-user-read'],
     type: 'group',
     icon: 'heroicons_outline:cog-6-tooth',
     children: [
@@ -37,6 +38,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
   {
     id: 'course-management',
     title: 'Course Management',
+    permissions: ['super', 'sp-category-read', 'sp-level-read', 'sp-courses-read', 'sp-materials-read', 'sp-tests-read'],
     type: 'group',
     icon: 'heroicons_outline:academic-cap',
     children: [
@@ -85,6 +87,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
   {
     id: 'system-settings',
     title: 'System Settings',
+    permissions: ['super', 'translation-read'],
     type: 'group',
     icon: 'heroicons_outline:cog-8-tooth',
     children: [
