@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Inject } from '@angular/core'
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
 import { MatButtonModule } from '@angular/material/button'
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog'
 import { MatFormFieldModule } from '@angular/material/form-field'
 import { MatIconModule } from '@angular/material/icon'
 import { MatInputModule } from '@angular/material/input'
 import { MatSelectModule } from '@angular/material/select'
+import { ActivatedRoute, Router } from '@angular/router'
 import { FileType } from 'app/shared/enums/file_type'
 import { UploadFileComponent, UploadFileData } from 'app/shared/components/upload-file/upload-file.component'
+import { WrapperBasicComponent } from 'app/shared/components/wrapper-basic/wrapper-basic.component'
 import { SpCategoryService } from '../../sp-category/common/sp-category.service'
 import { SpLevelService } from '../../sp-level/common/sp-level.service'
 import { ISpCourses } from '../common/sp-courses.model'
@@ -37,6 +38,7 @@ interface SpCoursesFormValue {
 @Component({
   selector: 'app-sp-courses-form',
   imports: [
+    WrapperBasicComponent,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -49,13 +51,21 @@ interface SpCoursesFormValue {
   styleUrl: './sp-courses-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SpCoursesFormComponent {
+export class SpCoursesFormComponent implements OnInit {
   private $service = inject(SpCoursesService)
   private $categoryService = inject(SpCategoryService)
   private $levelService = inject(SpLevelService)
   private $cdr = inject(ChangeDetectorRef)
-  dialogRef = inject(MatDialogRef<SpCoursesFormComponent>)
+  private route = inject(ActivatedRoute)
+  private router = inject(Router)
   fb = inject(FormBuilder)
+
+  isEditMode = false
+  courseId: string | null = null
+  breadcrumbs = [
+    { label: 'Kurslar', routerLink: '/sp-courses' },
+    { label: 'Yangi kurs', routerLink: '' }
+  ]
 
   fileType = FileType
   selectedImageFiles: { id: string }[] = []
@@ -89,65 +99,83 @@ export class SpCoursesFormComponent {
     sp_courses_modules: this.fb.array([]),
   })
 
-  get modulesArray() {
-    return this.form.get('sp_courses_modules') as FormArray
+  ngOnInit() {
+    this.courseId = this.route.snapshot.paramMap.get('id')
+    this.isEditMode = !!this.courseId
+    
+    if (this.isEditMode) {
+      this.breadcrumbs[1].label = 'Kursni tahrirlash'
+      this.loadCourse()
+    }
   }
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { spCourses?: ISpCourses }) {
-    if (data?.spCourses) {
-      // Convert tags array to string
-      const tagsString = data.spCourses.tags ? data.spCourses.tags.join(', ') : ''
-      
-      this.form.patchValue({
-        ...data.spCourses,
-        tagsString,
+  private loadCourse() {
+    if (this.courseId) {
+      this.$service.getById(this.courseId).subscribe(course => {
+        this.loadCourseData(course)
       })
-      
-      // Set image file
-      if (data.spCourses.file_image_id) {
-        this.selectedImageFiles = [{ id: data.spCourses.file_image_id }]
-      }
-
-      // Load existing modules
-      if (data.spCourses.sp_courses_modules?.length) {
-        data.spCourses.sp_courses_modules.forEach(module => {
-          const moduleGroup = this.fb.group({
-            name_uz: [module.name_uz, Validators.required],
-            name_kr: [module.name_kr, Validators.required],
-            name_ru: [module.name_ru, Validators.required],
-            duration: [module.duration, Validators.required],
-            code: [module.code, Validators.required],
-            sp_courses_module_parts: this.fb.array([])
-          })
-
-          // Load existing parts
-          if (module.sp_courses_module_parts?.length) {
-            const partsArray = moduleGroup.get('sp_courses_module_parts') as FormArray
-            module.sp_courses_module_parts.forEach(part => {
-              const partGroup = this.fb.group({
-                name_uz: [part.name_uz, Validators.required],
-                name_kr: [part.name_kr, Validators.required],
-                name_ru: [part.name_ru, Validators.required],
-                duration: [part.duration, Validators.required],
-                type: [part.type, Validators.required],
-                content: [part.content || ''],
-                file_video_id: [part.file_video_id || '']
-              })
-
-              // Set video file if exists
-              if (part.file_video_id) {
-                const key = `${this.modulesArray.length}_${partsArray.length}`
-                this.selectedVideoFiles[key] = [{ id: part.file_video_id }]
-              }
-
-              partsArray.push(partGroup)
-            })
-          }
-
-          this.modulesArray.push(moduleGroup)
-        })
-      }
     }
+  }
+
+  private loadCourseData(course: ISpCourses) {
+    // Convert tags array to string
+    const tagsString = course.tags ? course.tags.join(', ') : ''
+    
+    this.form.patchValue({
+      ...course,
+      tagsString,
+    })
+    
+    // Set image file
+    if (course.file_image_id) {
+      this.selectedImageFiles = [{ id: course.file_image_id }]
+    }
+
+    // Load existing modules
+    if (course.sp_courses_modules?.length) {
+      course.sp_courses_modules.forEach(module => {
+        const moduleGroup = this.fb.group({
+          name_uz: [module.name_uz, Validators.required],
+          name_kr: [module.name_kr, Validators.required],
+          name_ru: [module.name_ru, Validators.required],
+          duration: [module.duration, Validators.required],
+          code: [module.code, Validators.required],
+          sp_courses_module_parts: this.fb.array([])
+        })
+
+        // Load existing parts
+        if (module.sp_courses_module_parts?.length) {
+          const partsArray = moduleGroup.get('sp_courses_module_parts') as FormArray
+          module.sp_courses_module_parts.forEach(part => {
+            const partGroup = this.fb.group({
+              name_uz: [part.name_uz, Validators.required],
+              name_kr: [part.name_kr, Validators.required],
+              name_ru: [part.name_ru, Validators.required],
+              duration: [part.duration, Validators.required],
+              type: [part.type, Validators.required],
+              content: [part.content || ''],
+              file_video_id: [part.file_video_id || '']
+            })
+
+            // Set video file if exists
+            if (part.file_video_id) {
+              const key = `${this.modulesArray.length}_${partsArray.length}`
+              this.selectedVideoFiles[key] = [{ id: part.file_video_id }]
+            }
+
+            partsArray.push(partGroup)
+          })
+        }
+
+        this.modulesArray.push(moduleGroup)
+      })
+    }
+    
+    this.$cdr.markForCheck()
+  }
+
+  get modulesArray() {
+    return this.form.get('sp_courses_modules') as FormArray
   }
 
   onImageSelected(files: UploadFileData[]) {
@@ -249,10 +277,10 @@ export class SpCoursesFormComponent {
       }
       delete (payload as any).tagsString
       
-      if (this.data.spCourses) {
-        this.$service.update(this.data.spCourses.id, payload).subscribe({
+      if (this.isEditMode && this.courseId) {
+        this.$service.update(this.courseId, payload).subscribe({
           next: () => {
-            this.dialogRef.close(true)
+            this.router.navigate(['/sp-courses'])
           },
           error: (err) => {
             console.log(err)
@@ -261,7 +289,7 @@ export class SpCoursesFormComponent {
       } else {
         this.$service.create(payload).subscribe({
           next: () => {
-            this.dialogRef.close(true)
+            this.router.navigate(['/sp-courses'])
           },
           error: (err) => {
             console.log(err)
@@ -272,15 +300,19 @@ export class SpCoursesFormComponent {
   }
 
   delete() {
-    if (this.data.spCourses) {
-      this.$service.delete(this.data.spCourses.id).subscribe({
+    if (this.isEditMode && this.courseId) {
+      this.$service.delete(this.courseId).subscribe({
         next: () => {
-          this.dialogRef.close(true)
+          this.router.navigate(['/sp-courses'])
         },
         error: (err) => {
           console.log(err)
         },
       })
     }
+  }
+
+  cancel() {
+    this.router.navigate(['/sp-courses'])
   }
 }

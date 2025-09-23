@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { MatDialog } from '@angular/material/dialog'
+import { Router } from '@angular/router'
 import { GridServiceMaterial, IColumn, MaterialGridComponent } from 'app/shared'
-import { SpTestsFormComponent } from './sp-tests-form/sp-tests-form.component'
 import { ISpTests } from './common/sp-tests.model'
 import { SpTestsService, SpTestsGridService } from './common/sp-tests.service'
 
@@ -21,7 +20,7 @@ import { SpTestsService, SpTestsGridService } from './common/sp-tests.service'
 export class SpTestsComponent {
   private $service = inject(SpTestsService)
   private $serviceGrid = inject(SpTestsGridService)
-  private dialog = inject(MatDialog)
+  private router = inject(Router)
 
   columns: IColumn[] = [
     {
@@ -43,32 +42,10 @@ export class SpTestsComponent {
   ]
 
   onClickAdd(event: any) {
-    this.dialog
-      .open(SpTestsFormComponent, {
-        data: {},
-        width: '800px',
-        maxHeight: '90vh',
-      })
-      .afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.$serviceGrid.onLoadPage(this.$serviceGrid.pageEvent)
-        }
-      })
+    this.router.navigate(['add'], { relativeTo: this.router.routerState.root.firstChild })
   }
 
   onRowSelect(event: ISpTests) {
-    this.dialog
-      .open(SpTestsFormComponent, {
-        data: { spTests: event },
-        width: '800px',
-        maxHeight: '90vh',
-      })
-      .afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.$serviceGrid.onLoadPage(this.$serviceGrid.pageEvent)
-        }
-      })
+    this.router.navigate(['edit', event.id], { relativeTo: this.router.routerState.root.firstChild })
   }
 }

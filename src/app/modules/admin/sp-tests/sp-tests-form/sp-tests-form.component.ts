@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, Inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
 import { MatButtonModule } from '@angular/material/button'
 import { MatCheckboxModule } from '@angular/material/checkbox'
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog'
 import { MatFormFieldModule } from '@angular/material/form-field'
 import { MatIconModule } from '@angular/material/icon'
 import { MatInputModule } from '@angular/material/input'
 import { MatSelectModule } from '@angular/material/select'
+import { ActivatedRoute, Router } from '@angular/router'
+import { WrapperBasicComponent } from 'app/shared/components/wrapper-basic/wrapper-basic.component'
 import { SpCategoryService } from '../../sp-category/common/sp-category.service'
 import { SpLevelService } from '../../sp-level/common/sp-level.service'
 import { ISpTests } from '../common/sp-tests.model'
@@ -16,6 +17,7 @@ import { SpTestsService } from '../common/sp-tests.service'
 @Component({
   selector: 'app-sp-tests-form',
   imports: [
+    WrapperBasicComponent,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -28,12 +30,20 @@ import { SpTestsService } from '../common/sp-tests.service'
   styleUrl: './sp-tests-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SpTestsFormComponent {
+export class SpTestsFormComponent implements OnInit {
   private $service = inject(SpTestsService)
   private $categoryService = inject(SpCategoryService)
   private $levelService = inject(SpLevelService)
-  dialogRef = inject(MatDialogRef<SpTestsFormComponent>)
+  private route = inject(ActivatedRoute)
+  private router = inject(Router)
   fb = inject(FormBuilder)
+
+  isEditMode = false
+  testId: string | null = null
+  breadcrumbs = [
+    { label: 'Testlar', routerLink: '/sp-tests' },
+    { label: 'Yangi test', routerLink: '' }
+  ]
 
   categories = toSignal(this.$categoryService.getAll(), {
     initialValue: [],
@@ -245,38 +255,54 @@ export class SpTestsFormComponent {
     sp_tests_quessions: this.fb.array([]),
   })
 
-  get questionsArray() {
-    return this.form.get('sp_tests_quessions') as FormArray
+  ngOnInit() {
+    this.testId = this.route.snapshot.paramMap.get('id')
+    this.isEditMode = !!this.testId
+    
+    if (this.isEditMode) {
+      this.breadcrumbs[1].label = 'Testni tahrirlash'
+      this.loadTest()
+    }
   }
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { spTests?: ISpTests }) {
-    if (data?.spTests) {
-      this.form.patchValue(data.spTests)
-      
-      // Load existing questions
-      if (data.spTests.sp_tests_quessions?.length) {
-        data.spTests.sp_tests_quessions.forEach(question => {
-          const questionGroup = this.fb.group({
-            question: [question.question, Validators.required],
-            explanation: [question.explanation],
-            sp_quession_options: this.fb.array([])
-          })
-
-          // Load existing options
-          if (question.sp_quession_options?.length) {
-            const optionsArray = questionGroup.get('sp_quession_options') as FormArray
-            question.sp_quession_options.forEach(option => {
-              optionsArray.push(this.fb.group({
-                text: [option.text, Validators.required],
-                is_result: [option.is_result, Validators.required]
-              }))
-            })
-          }
-
-          this.questionsArray.push(questionGroup)
-        })
-      }
+  private loadTest() {
+    if (this.testId) {
+      this.$service.getById(this.testId).subscribe(test => {
+        this.loadTestData(test)
+      })
     }
+  }
+
+  private loadTestData(test: ISpTests) {
+    this.form.patchValue(test)
+    
+    // Load existing questions
+    if (test.sp_tests_quessions?.length) {
+      test.sp_tests_quessions.forEach(question => {
+        const questionGroup = this.fb.group({
+          question: [question.question, Validators.required],
+          explanation: [question.explanation],
+          sp_quession_options: this.fb.array([])
+        })
+
+        // Load existing options
+        if (question.sp_quession_options?.length) {
+          const optionsArray = questionGroup.get('sp_quession_options') as FormArray
+          question.sp_quession_options.forEach(option => {
+            optionsArray.push(this.fb.group({
+              text: [option.text, Validators.required],
+              is_result: [option.is_result, Validators.required]
+            }))
+          })
+        }
+
+        this.questionsArray.push(questionGroup)
+      })
+    }
+  }
+
+  get questionsArray() {
+    return this.form.get('sp_tests_quessions') as FormArray
   }
 
   addQuestion() {
@@ -312,10 +338,10 @@ export class SpTestsFormComponent {
     if (this.form.valid) {
       const formData = { ...this.form.value }
       
-      if (this.data.spTests) {
-        this.$service.update(this.data.spTests.id, formData as any).subscribe({
+      if (this.isEditMode && this.testId) {
+        this.$service.update(this.testId, formData as any).subscribe({
           next: () => {
-            this.dialogRef.close(true)
+            this.router.navigate(['/sp-tests'])
           },
           error: (err) => {
             console.log(err)
@@ -324,7 +350,7 @@ export class SpTestsFormComponent {
       } else {
         this.$service.create(formData as any).subscribe({
           next: () => {
-            this.dialogRef.close(true)
+            this.router.navigate(['/sp-tests'])
           },
           error: (err) => {
             console.log(err)
@@ -335,15 +361,19 @@ export class SpTestsFormComponent {
   }
 
   delete() {
-    if (this.data.spTests) {
-      this.$service.delete(this.data.spTests.id).subscribe({
+    if (this.isEditMode && this.testId) {
+      this.$service.delete(this.testId).subscribe({
         next: () => {
-          this.dialogRef.close(true)
+          this.router.navigate(['/sp-tests'])
         },
         error: (err) => {
           console.log(err)
         },
       })
     }
+  }
+
+  cancel() {
+    this.router.navigate(['/sp-tests'])
   }
 }

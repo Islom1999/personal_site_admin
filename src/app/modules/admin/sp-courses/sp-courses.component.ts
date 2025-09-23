@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { MatDialog } from '@angular/material/dialog'
+import { Router } from '@angular/router'
 import { GridServiceMaterial, IColumn, MaterialGridComponent } from 'app/shared'
-import { SpCoursesFormComponent } from './sp-courses-form/sp-courses-form.component'
 import { ISpCourses } from './common/sp-courses.model'
 import { SpCoursesService, SpCoursesGridService } from './common/sp-courses.service'
 
@@ -21,7 +20,7 @@ import { SpCoursesService, SpCoursesGridService } from './common/sp-courses.serv
 export class SpCoursesComponent {
   private $service = inject(SpCoursesService)
   private $serviceGrid = inject(SpCoursesGridService)
-  private dialog = inject(MatDialog)
+  private router = inject(Router)
 
   columns: IColumn[] = [
     {
@@ -55,32 +54,10 @@ export class SpCoursesComponent {
   ]
 
   onClickAdd(event: any) {
-    this.dialog
-      .open(SpCoursesFormComponent, {
-        data: {},
-        width: '1000px',
-        maxHeight: '90vh',
-      })
-      .afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.$serviceGrid.onLoadPage(this.$serviceGrid.pageEvent)
-        }
-      })
+    this.router.navigate(['add'], { relativeTo: this.router.routerState.root.firstChild })
   }
 
   onRowSelect(event: ISpCourses) {
-    this.dialog
-      .open(SpCoursesFormComponent, {
-        data: { spCourses: event },
-        width: '1000px',
-        maxHeight: '90vh',
-      })
-      .afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.$serviceGrid.onLoadPage(this.$serviceGrid.pageEvent)
-        }
-      })
+    this.router.navigate(['edit', event.id], { relativeTo: this.router.routerState.root.firstChild })
   }
 }
