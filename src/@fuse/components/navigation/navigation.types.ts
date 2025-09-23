@@ -4,6 +4,7 @@ export interface FuseNavigationItem
 {
     id?: string;
     title?: string;
+    permissions?: string[]
     subtitle?: string;
     type:
         | 'aside'
