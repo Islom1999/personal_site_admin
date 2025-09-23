@@ -1,4 +1,4 @@
-export interface User
+export interface User extends IAdminUser
 {
     id: string;
     name: string;
