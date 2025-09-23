@@ -5,6 +5,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
   {
     id: 'admin-permission',
     title: 'Permission',
+    permissions: ['super'],
     type: 'basic',
     icon: 'heroicons_outline:adjustments-vertical',
     link: '/admin-permission',
