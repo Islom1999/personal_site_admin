@@ -24,6 +24,20 @@ export const defaultNavigation: FuseNavigationItem[] = [
     link: '/admin-user',
   },
   {
+    id: 'sp-level',
+    title: 'SP Level',
+    type: 'basic',
+    icon: 'heroicons_outline:adjustments-vertical',
+    link: '/sp-level',
+  },
+  {
+    id: 'sp-category',
+    title: 'SP Category',
+    type: 'basic',
+    icon: 'heroicons_outline:adjustments-vertical',
+    link: '/sp-category',
+  },
+  {
     id: 'translation',
     title: 'Translation',
     type: 'basic',

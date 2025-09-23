@@ -1,1 +1,40 @@
-<p>sp-level-form works!</p>
+<h2 mat-dialog-title>{{ data?.spLevel ? 'Tahrirlash' : "Yangi qo'shish" }}</h2>
+
+<form class="flex flex-col gap-2 mt-4" [formGroup]="form" (ngSubmit)="submit()" mat-dialog-content>
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Uz)</mat-label>
+      <input matInput formControlName="name_uz" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Kr)</mat-label>
+      <input matInput formControlName="name_kr" />
+    </mat-form-field>
+  </div>
+
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Name (Ru)</mat-label>
+      <input matInput formControlName="name_ru" />
+    </mat-form-field>
+  </div>
+
+  <div mat-dialog-actions>
+    <div class="flex justify-between">
+      <div class="item">
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          Saqlash
+        </button>
+        <button mat-button type="button" (click)="dialogRef.close()">Bekor qilish</button>
+      </div>
+      <div class="item">
+        @if (data?.spLevel) {
+          <button mat-button type="button" color="warn" (click)="delete()">O'chirish</button>
+        }
+      </div>
+    </div>
+  </div>
+</form>

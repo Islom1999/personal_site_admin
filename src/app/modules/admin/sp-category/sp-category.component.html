@@ -1,1 +1,7 @@
-<p>sp-category works!</p>
+<app-grid
+  [title]="'Kategoriyalar ro\'yhati'"
+  [columns]="columns"
+  [showAddButton]="true"
+  (onClickAdd)="onClickAdd($event)"
+  (onRowSelect)="onRowSelect($event)"
+></app-grid>

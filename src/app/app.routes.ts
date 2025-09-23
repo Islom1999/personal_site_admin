@@ -88,6 +88,14 @@ export const appRoutes: Route[] = [
         loadChildren: () => import('app/modules/admin/admin-user/admin-user.routes'),
       },
       {
+        path: 'sp-level',
+        loadChildren: () => import('app/modules/admin/sp-level/sp-level.routes'),
+      },
+      {
+        path: 'sp-category',
+        loadChildren: () => import('app/modules/admin/sp-category/sp-category.routes'),
+      },
+      {
         path: 'translation',
         loadChildren: () => import('app/modules/admin/translations/translations.routes'),
       },

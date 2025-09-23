@@ -1,1 +1,7 @@
-<p>sp-level works!</p>
+<app-grid
+  [title]="'Darajalar ro\'yhati'"
+  [columns]="columns"
+  [showAddButton]="true"
+  (onClickAdd)="onClickAdd($event)"
+  (onRowSelect)="onRowSelect($event)"
+></app-grid>
