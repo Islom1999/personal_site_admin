@@ -1,1 +1,7 @@
-<p>sp-courses works!</p>
+<app-grid
+  [title]="'Kurslar ro\'yhati'"
+  [columns]="columns"
+  [showAddButton]="true"
+  (onClickAdd)="onClickAdd($event)"
+  (onRowSelect)="onRowSelect($event)"
+></app-grid>

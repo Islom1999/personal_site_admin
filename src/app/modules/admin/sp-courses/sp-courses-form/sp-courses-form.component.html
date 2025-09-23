@@ -1,1 +1,312 @@
-<p>sp-courses-form works!</p>
+<h2 mat-dialog-title>{{ data?.spCourses ? 'Tahrirlash' : "Yangi qo'shish" }}</h2>
+
+<form class="flex flex-col gap-2 mt-4" [formGroup]="form" (ngSubmit)="submit()" mat-dialog-content>
+  <!-- Basic Information -->
+  <div class="grid grid-cols-2 gap-4">
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Name (Uz)</mat-label>
+        <input matInput formControlName="name_uz" />
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Name (Kr)</mat-label>
+        <input matInput formControlName="name_kr" />
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Name (Ru)</mat-label>
+        <input matInput formControlName="name_ru" />
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Code</mat-label>
+        <input matInput formControlName="code" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Descriptions -->
+  <div class="grid grid-cols-1 gap-4">
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Description (Uz)</mat-label>
+        <textarea matInput formControlName="description_uz" rows="3"></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Description (Kr)</mat-label>
+        <textarea matInput formControlName="description_kr" rows="3"></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Description (Ru)</mat-label>
+        <textarea matInput formControlName="description_ru" rows="3"></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Course Details -->
+  <div class="grid grid-cols-2 gap-4">
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Instructor</mat-label>
+        <input matInput formControlName="instructor" />
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Duration</mat-label>
+        <input matInput formControlName="duration" />
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Rating</mat-label>
+        <input matInput type="number" step="0.1" min="0" max="5" formControlName="rating" />
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Price</mat-label>
+        <input matInput type="number" min="0" formControlName="price" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Premium Type and Selects -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Premium Type</mat-label>
+        <mat-select formControlName="premium_type">
+          <mat-option value="free">Free</mat-option>
+          <mat-option value="premium">Premium</mat-option>
+          <mat-option value="pro">Pro</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SP Category</mat-label>
+        <mat-select formControlName="sp_category_id">
+          @for (category of categories(); track category.id) {
+            <mat-option [value]="category.id">{{ category.name_uz }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="item">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>SP Level</mat-label>
+        <mat-select formControlName="sp_level_id">
+          @for (level of levels(); track level.id) {
+            <mat-option [value]="level.id">{{ level.name_uz }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Tags -->
+  <div class="item">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Tags (comma separated)</mat-label>
+      <input matInput formControlName="tagsString" placeholder="javascript, react, frontend" />
+    </mat-form-field>
+  </div>
+
+  <!-- Image Upload -->
+  <div class="item">
+    <label class="block text-sm font-medium mb-2">Kurs rasmi</label>
+    <app-upload-file
+      [multiple]="false"
+      [acceptType]="fileType.image"
+      [uploadUrl]="'https://api.personal.topsites.uz/api/files/upload'"
+      [files]="selectedImageFiles"
+      (fileSelected)="onImageSelected($event)"
+    ></app-upload-file>
+  </div>
+
+  <!-- Course Modules -->
+  <div class="mt-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-medium">Kurs modullari</h3>
+      <button type="button" mat-raised-button color="accent" (click)="addModule()">
+        <mat-icon>add</mat-icon>
+        Modul qo'shish
+      </button>
+    </div>
+
+    <div formArrayName="sp_courses_modules" class="space-y-6">
+      @for (moduleControl of modulesArray.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="border rounded-lg p-4 bg-gray-50">
+          <div class="flex justify-between items-start mb-4">
+            <h4 class="font-medium">Modul {{ i + 1 }}</h4>
+            <button type="button" mat-icon-button color="warn" (click)="removeModule(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <!-- Module Basic Info -->
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="item">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Modul nomi (Uz)</mat-label>
+                <input matInput formControlName="name_uz" />
+              </mat-form-field>
+            </div>
+
+            <div class="item">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Modul nomi (Kr)</mat-label>
+                <input matInput formControlName="name_kr" />
+              </mat-form-field>
+            </div>
+
+            <div class="item">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Modul nomi (Ru)</mat-label>
+                <input matInput formControlName="name_ru" />
+              </mat-form-field>
+            </div>
+
+            <div class="item">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Duration</mat-label>
+                <input matInput formControlName="duration" />
+              </mat-form-field>
+            </div>
+
+            <div class="item col-span-2">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Code</mat-label>
+                <input matInput formControlName="code" />
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Module Parts -->
+          <div class="mt-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-medium">Modul qismlari</span>
+              <button type="button" mat-button color="primary" (click)="addModulePart(i)">
+                <mat-icon>add</mat-icon>
+                Qism qo'shish
+              </button>
+            </div>
+
+            <div formArrayName="sp_courses_module_parts" class="space-y-3">
+              @for (partControl of getModulePartsArray(i).controls; track $index; let j = $index) {
+                <div [formGroupName]="j" class="bg-white p-3 rounded border">
+                  <div class="flex justify-between items-start mb-2">
+                    <span class="text-sm font-medium">Qism {{ j + 1 }}</span>
+                    <button type="button" mat-icon-button color="warn" (click)="removeModulePart(i, j)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2 mb-2">
+                    <div class="item">
+                      <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Qism nomi (Uz)</mat-label>
+                        <input matInput formControlName="name_uz" />
+                      </mat-form-field>
+                    </div>
+
+                    <div class="item">
+                      <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Qism nomi (Kr)</mat-label>
+                        <input matInput formControlName="name_kr" />
+                      </mat-form-field>
+                    </div>
+
+                    <div class="item">
+                      <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Qism nomi (Ru)</mat-label>
+                        <input matInput formControlName="name_ru" />
+                      </mat-form-field>
+                    </div>
+
+                    <div class="item">
+                      <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Duration</mat-label>
+                        <input matInput formControlName="duration" />
+                      </mat-form-field>
+                    </div>
+
+                    <div class="item">
+                      <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Type</mat-label>
+                        <mat-select formControlName="type">
+                          <mat-option value="video">Video</mat-option>
+                          <mat-option value="text">Text</mat-option>
+                          <mat-option value="quiz">Quiz</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <!-- Video Upload (if type is video) -->
+                  @if (getPartTypeValue(i, j) === 'video') {
+                    <div class="item mb-2">
+                      <label class="block text-sm font-medium mb-2">Video yuklash</label>
+                      <app-upload-file
+                        [multiple]="false"
+                        [acceptType]="fileType.video"
+                        [uploadUrl]="'https://api.personal.topsites.uz/api/files/upload'"
+                        [files]="getSelectedVideoFiles(i, j)"
+                        (fileSelected)="onVideoSelected($event, i, j)"
+                      ></app-upload-file>
+                    </div>
+                  }
+
+                  <!-- Text Content (if type is text) -->
+                  @if (getPartTypeValue(i, j) === 'text') {
+                    <div class="item">
+                      <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Matn mazmuni</mat-label>
+                        <textarea matInput formControlName="content" rows="4"></textarea>
+                      </mat-form-field>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div mat-dialog-actions>
+    <div class="flex justify-between">
+      <div class="item">
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          Saqlash
+        </button>
+        <button mat-button type="button" (click)="dialogRef.close()">Bekor qilish</button>
+      </div>
+      <div class="item">
+        @if (data?.spCourses) {
+          <button mat-button type="button" color="warn" (click)="delete()">O'chirish</button>
+        }
+      </div>
+    </div>
+  </div>
+</form>

@@ -1,11 +1,265 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Inject } from '@angular/core'
+import { toSignal } from '@angular/core/rxjs-interop'
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
+import { MatButtonModule } from '@angular/material/button'
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog'
+import { MatFormFieldModule } from '@angular/material/form-field'
+import { MatIconModule } from '@angular/material/icon'
+import { MatInputModule } from '@angular/material/input'
+import { MatSelectModule } from '@angular/material/select'
+import { FileType } from 'app/shared/enums/file_type'
+import { UploadFileComponent, UploadFileData } from 'app/shared/components/upload-file/upload-file.component'
+import { SpCategoryService } from '../../sp-category/common/sp-category.service'
+import { SpLevelService } from '../../sp-level/common/sp-level.service'
+import { ISpCourses } from '../common/sp-courses.model'
+import { SpCoursesService } from '../common/sp-courses.service'
 
 @Component({
   selector: 'app-sp-courses-form',
-  imports: [],
+  imports: [
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatIconModule,
+    UploadFileComponent,
+  ],
   templateUrl: './sp-courses-form.component.html',
-  styleUrl: './sp-courses-form.component.scss'
+  styleUrl: './sp-courses-form.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpCoursesFormComponent {
+  private $service = inject(SpCoursesService)
+  private $categoryService = inject(SpCategoryService)
+  private $levelService = inject(SpLevelService)
+  private $cdr = inject(ChangeDetectorRef)
+  dialogRef = inject(MatDialogRef<SpCoursesFormComponent>)
+  fb = inject(FormBuilder)
 
+  fileType = FileType
+  selectedImageFiles: { id: string }[] = []
+  selectedVideoFiles: { [key: string]: { id: string }[] } = {}
+
+  categories = toSignal(this.$categoryService.getAll(), {
+    initialValue: [],
+  })
+
+  levels = toSignal(this.$levelService.getAll(), {
+    initialValue: [],
+  })
+
+  form = this.fb.group({
+    name_uz: ['', Validators.required],
+    name_kr: ['', Validators.required],
+    name_ru: ['', Validators.required],
+    description_uz: ['', Validators.required],
+    description_kr: ['', Validators.required],
+    description_ru: ['', Validators.required],
+    instructor: ['', Validators.required],
+    duration: ['', Validators.required],
+    rating: ['', Validators.required],
+    premium_type: ['free', Validators.required],
+    price: [0, [Validators.required, Validators.min(0)]],
+    tagsString: [''],
+    code: ['', Validators.required],
+    sp_category_id: ['', Validators.required],
+    sp_level_id: ['', Validators.required],
+    file_image_id: [''],
+    sp_courses_modules: this.fb.array([]),
+  })
+
+  get modulesArray() {
+    return this.form.get('sp_courses_modules') as FormArray
+  }
+
+  constructor(@Inject(MAT_DIALOG_DATA) public data: { spCourses?: ISpCourses }) {
+    if (data?.spCourses) {
+      // Convert tags array to string
+      const tagsString = data.spCourses.tags ? data.spCourses.tags.join(', ') : ''
+      
+      this.form.patchValue({
+        ...data.spCourses,
+        tagsString,
+      })
+      
+      // Set image file
+      if (data.spCourses.file_image_id) {
+        this.selectedImageFiles = [{ id: data.spCourses.file_image_id }]
+      }
+
+      // Load existing modules
+      if (data.spCourses.sp_courses_modules?.length) {
+        data.spCourses.sp_courses_modules.forEach(module => {
+          const moduleGroup = this.fb.group({
+            name_uz: [module.name_uz, Validators.required],
+            name_kr: [module.name_kr, Validators.required],
+            name_ru: [module.name_ru, Validators.required],
+            duration: [module.duration, Validators.required],
+            code: [module.code, Validators.required],
+            sp_courses_module_parts: this.fb.array([])
+          })
+
+          // Load existing parts
+          if (module.sp_courses_module_parts?.length) {
+            const partsArray = moduleGroup.get('sp_courses_module_parts') as FormArray
+            module.sp_courses_module_parts.forEach(part => {
+              const partGroup = this.fb.group({
+                name_uz: [part.name_uz, Validators.required],
+                name_kr: [part.name_kr, Validators.required],
+                name_ru: [part.name_ru, Validators.required],
+                duration: [part.duration, Validators.required],
+                type: [part.type, Validators.required],
+                content: [part.content || ''],
+                file_video_id: [part.file_video_id || '']
+              })
+
+              // Set video file if exists
+              if (part.file_video_id) {
+                const key = `${this.modulesArray.length}_${partsArray.length}`
+                this.selectedVideoFiles[key] = [{ id: part.file_video_id }]
+              }
+
+              partsArray.push(partGroup)
+            })
+          }
+
+          this.modulesArray.push(moduleGroup)
+        })
+      }
+    }
+  }
+
+  onImageSelected(files: UploadFileData[]) {
+    if (files.length > 0) {
+      this.form.patchValue({
+        file_image_id: files[0].uploadData.id
+      })
+      this.selectedImageFiles = [{ id: files[0].uploadData.id }]
+    } else {
+      this.form.patchValue({
+        file_image_id: ''
+      })
+      this.selectedImageFiles = []
+    }
+  }
+
+  onVideoSelected(files: UploadFileData[], moduleIndex: number, partIndex: number) {
+    const key = `${moduleIndex}_${partIndex}`
+    const partControl = this.getModulePartsArray(moduleIndex).at(partIndex)
+    
+    if (files.length > 0) {
+      partControl.patchValue({
+        file_video_id: files[0].uploadData.id
+      })
+      this.selectedVideoFiles[key] = [{ id: files[0].uploadData.id }]
+    } else {
+      partControl.patchValue({
+        file_video_id: ''
+      })
+      this.selectedVideoFiles[key] = []
+    }
+  }
+
+  getSelectedVideoFiles(moduleIndex: number, partIndex: number): { id: string }[] {
+    const key = `${moduleIndex}_${partIndex}`
+    return this.selectedVideoFiles[key] || []
+  }
+
+  getPartTypeValue(moduleIndex: number, partIndex: number): string {
+    return this.getModulePartsArray(moduleIndex).at(partIndex)?.get('type')?.value || ''
+  }
+
+  addModule() {
+    const moduleGroup = this.fb.group({
+      name_uz: ['', Validators.required],
+      name_kr: ['', Validators.required],
+      name_ru: ['', Validators.required],
+      duration: ['', Validators.required],
+      code: ['', Validators.required],
+      sp_courses_module_parts: this.fb.array([])
+    })
+    this.modulesArray.push(moduleGroup)
+  }
+
+  removeModule(index: number) {
+    this.modulesArray.removeAt(index)
+    // Clean up video files for this module
+    Object.keys(this.selectedVideoFiles).forEach(key => {
+      if (key.startsWith(`${index}_`)) {
+        delete this.selectedVideoFiles[key]
+      }
+    })
+  }
+
+  getModulePartsArray(moduleIndex: number): FormArray {
+    return this.modulesArray.at(moduleIndex).get('sp_courses_module_parts') as FormArray
+  }
+
+  addModulePart(moduleIndex: number) {
+    const partGroup = this.fb.group({
+      name_uz: ['', Validators.required],
+      name_kr: ['', Validators.required],
+      name_ru: ['', Validators.required],
+      duration: ['', Validators.required],
+      type: ['video', Validators.required],
+      content: [''],
+      file_video_id: ['']
+    })
+    this.getModulePartsArray(moduleIndex).push(partGroup)
+  }
+
+  removeModulePart(moduleIndex: number, partIndex: number) {
+    this.getModulePartsArray(moduleIndex).removeAt(partIndex)
+    // Clean up video file for this part
+    const key = `${moduleIndex}_${partIndex}`
+    delete this.selectedVideoFiles[key]
+  }
+
+  submit() {
+    if (this.form.valid) {
+      const formData = { ...this.form.value }
+      
+      // Convert tags string to array
+      if (formData.tagsString) {
+        formData.tags = formData.tagsString.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
+        delete formData.tagsString
+      } else {
+        formData.tags = []
+      }
+      
+      if (this.data.spCourses) {
+        this.$service.update(this.data.spCourses.id, formData as any).subscribe({
+          next: () => {
+            this.dialogRef.close(true)
+          },
+          error: (err) => {
+            console.log(err)
+          },
+        })
+      } else {
+        this.$service.create(formData as any).subscribe({
+          next: () => {
+            this.dialogRef.close(true)
+          },
+          error: (err) => {
+            console.log(err)
+          },
+        })
+      }
+    }
+  }
+
+  delete() {
+    if (this.data.spCourses) {
+      this.$service.delete(this.data.spCourses.id).subscribe({
+        next: () => {
+          this.dialogRef.close(true)
+        },
+        error: (err) => {
+          console.log(err)
+        },
+      })
+    }
+  }
 }
