@@ -81,74 +81,38 @@ export const appRoutes: Route[] = [
       {
         path: 'admin-permission',
         loadChildren: () => import('app/modules/admin/admin-permission/admin-permission.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'admin-role',
         loadChildren: () => import('app/modules/admin/admin-role/admin-role.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'admin-user',
         loadChildren: () => import('app/modules/admin/admin-user/admin-user.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'sp-level',
         loadChildren: () => import('app/modules/admin/sp-level/sp-level.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'sp-category',
         loadChildren: () => import('app/modules/admin/sp-category/sp-category.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'sp-materials',
         loadChildren: () => import('app/modules/admin/sp-materials/sp-materials.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'sp-courses',
         loadChildren: () => import('app/modules/admin/sp-courses/sp-courses.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'sp-tests',
         loadChildren: () => import('app/modules/admin/sp-tests/sp-tests.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
       {
         path: 'translation',
         loadChildren: () => import('app/modules/admin/translations/translations.routes'),
-        canActivate: [PermissionGuard],
-        data: {
-          permissions: ['super'],
-        },
       },
     ],
   },
