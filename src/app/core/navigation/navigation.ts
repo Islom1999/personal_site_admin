@@ -11,7 +11,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
     children: [
       {
         id: 'admin-permission',
-        title: 'Permissions',
+        title: 'Ruxsatlar',
         permissions: ['super', 'admin-permission-read'],
         type: 'basic',
         icon: 'heroicons_outline:key',
@@ -19,7 +19,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
       },
       {
         id: 'admin-role',
-        title: 'Roles',
+        title: 'Rollar',
         permissions: ['super', 'admin-role-read'],
         type: 'basic',
         icon: 'heroicons_outline:shield-check',
@@ -27,7 +27,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
       },
       {
         id: 'admin-user',
-        title: 'Admins',
+        title: 'Adminlar',
         permissions: ['super', 'admin-user-read'],
         type: 'basic',
         icon: 'heroicons_outline:users',
@@ -37,14 +37,21 @@ export const defaultNavigation: FuseNavigationItem[] = [
   },
   {
     id: 'course-management',
-    title: 'Course Management',
-    permissions: ['super', 'sp-category-read', 'sp-level-read', 'sp-courses-read', 'sp-materials-read', 'sp-tests-read'],
+    title: 'Kurs boshqaruvi',
+    permissions: [
+      'super',
+      'sp-category-read',
+      'sp-level-read',
+      'sp-courses-read',
+      'sp-materials-read',
+      'sp-tests-read',
+    ],
     type: 'group',
     icon: 'heroicons_outline:academic-cap',
     children: [
       {
         id: 'sp-category',
-        title: 'Categories',
+        title: 'Kategoriyalar',
         permissions: ['super', 'sp-category-read'],
         type: 'basic',
         icon: 'heroicons_outline:squares-2x2',
@@ -52,7 +59,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
       },
       {
         id: 'sp-level',
-        title: 'Levels',
+        title: 'Darajalar',
         permissions: ['super', 'sp-level-read'],
         type: 'basic',
         icon: 'heroicons_outline:signal',
@@ -60,7 +67,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
       },
       {
         id: 'sp-courses',
-        title: 'Courses',
+        title: 'Kurslar',
         permissions: ['super', 'sp-courses-read'],
         type: 'basic',
         icon: 'heroicons_outline:play-circle',
@@ -68,7 +75,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
       },
       {
         id: 'sp-materials',
-        title: 'Materials',
+        title: 'Materiallar',
         permissions: ['super', 'sp-materials-read'],
         type: 'basic',
         icon: 'heroicons_outline:document-text',
@@ -76,7 +83,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
       },
       {
         id: 'sp-tests',
-        title: 'Tests',
+        title: 'Testlar',
         permissions: ['super', 'sp-tests-read'],
         type: 'basic',
         icon: 'heroicons_outline:clipboard-document-check',
@@ -86,14 +93,14 @@ export const defaultNavigation: FuseNavigationItem[] = [
   },
   {
     id: 'system-settings',
-    title: 'System Settings',
+    title: 'Tizim sozlamalari',
     permissions: ['super', 'translation-read'],
     type: 'group',
     icon: 'heroicons_outline:cog-8-tooth',
     children: [
       {
         id: 'translation',
-        title: 'Translations',
+        title: 'Tarjimalar',
         permissions: ['super', 'translation-read'],
         type: 'basic',
         icon: 'heroicons_outline:language',
