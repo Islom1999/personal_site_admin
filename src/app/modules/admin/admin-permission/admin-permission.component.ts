@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core'
+import { Component, inject, OnInit } from '@angular/core'
 import { MatDialog } from '@angular/material/dialog'
 import { GridServiceMaterial, IColumn, MaterialGridComponent } from 'app/shared'
 import { AdminPermissionFormComponent } from './admin-permission-form/admin-permission-form.component'
@@ -24,6 +24,8 @@ export class AdminPermissionComponent {
   private $service = inject(AdminPermissionService)
   private $serviceGrid = inject(AdminPermissionGridService)
   private dialog = inject(MatDialog)
+
+  ngOnInit(): void {}
 
   columns: IColumn[] = [
     {

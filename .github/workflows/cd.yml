@@ -21,8 +21,8 @@ jobs:
           username: ${{ env.SERVER_USERNAME }}
           password: ${{ env.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/personal_site/personal_site_admin
+            cd ~/techno_teach/personal_site_admin
             git pull
             npm install
             ng build
-            sudo rsync -av --delete /root/personal_site/personal_site_admin/dist/fuse/ /var/www/personal_site_admin/
+            sudo rsync -av --delete /root/techno_teach/personal_site_admin/dist/fuse/ /var/www/techno_teach_admin/
