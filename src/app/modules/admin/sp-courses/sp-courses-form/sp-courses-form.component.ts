@@ -125,15 +125,33 @@ export class SpCoursesFormComponent implements OnInit {
     if (this.courseId) {
       this.$service.getById(this.courseId).subscribe((course) => {
         this.loadCourseData(course)
+        console.log(course)
       })
     }
   }
 
   private loadCourseData(course: ISpCourses) {
-    // Set image file
     if (course.file_image_id) {
       this.selectedImageFiles = [{ id: course.file_image_id }]
     }
+
+    this.form.patchValue({
+      name_uz: course.name_uz,
+      name_kr: course.name_kr,
+      name_ru: course.name_ru,
+      description_uz: course.description_uz,
+      description_kr: course.description_kr,
+      description_ru: course.description_ru,
+      instructor: course.instructor,
+      duration: course.duration,
+      rating: course.rating,
+      premium_type: course.premium_type,
+      price: course.price,
+      tags: course.tags || [],
+      sp_category_id: course.sp_category_id,
+      sp_level_id: course.sp_level_id,
+      file_image_id: course.file_image_id,
+    })
 
     // Load existing modules
     if (course.sp_courses_modules?.length) {

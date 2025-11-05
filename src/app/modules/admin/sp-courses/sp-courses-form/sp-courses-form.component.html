@@ -301,9 +301,18 @@
       <!-- Actions -->
       <div class="flex justify-between items-center mt-6 pt-4 border-t">
         <div class="flex gap-2">
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          <!-- <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+            Saqlash
+          </button> -->
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="form.invalid || !form.dirty"
+          >
             Saqlash
           </button>
+
           <button mat-button type="button" (click)="cancel()">Bekor qilish</button>
         </div>
         <div class="item">
