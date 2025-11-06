@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core'
-import { BaseCrudService, GridResponse, GridServiceMaterial } from 'app/shared'
+import { BaseCrudService, GridResponse, GridServiceMaterial, GridRequestParams } from 'app/shared'
 import { Observable } from 'rxjs'
 import { ITranslations } from './translations.model'
 
@@ -20,13 +20,9 @@ export class TranslationsGridService extends GridServiceMaterial<ITranslations> 
     super()
   }
 
-  getAllData(params: {
-    page: number
-    limit: number
-    sort?: string
-    order?: string
-    filters?: string
-  }): Observable<GridResponse<ITranslations>> {
+  getAllData(
+    params: GridRequestParams & { filters?: string },
+  ): Observable<GridResponse<ITranslations>> {
     return this.$api.getAllPagination(params)
   }
 }
