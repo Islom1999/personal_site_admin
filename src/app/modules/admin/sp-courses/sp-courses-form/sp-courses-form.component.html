@@ -259,15 +259,16 @@
                             <mat-label>Type</mat-label>
                             <mat-select formControlName="type">
                               <mat-option value="video">Video</mat-option>
+                              <mat-option value="youtube">YouTube</mat-option>
                               <mat-option value="text">Text</mat-option>
-                              <mat-option value="quiz">Quiz</mat-option>
+                              <mat-option value="gibrid">Gibrid</mat-option>
                             </mat-select>
                           </mat-form-field>
                         </div>
                       </div>
 
                       <!-- Video Upload (if type is video) -->
-                      @if (getPartTypeValue(i, j) === 'video') {
+                      @if (getPartTypeValue(i, j) === 'video' || getPartTypeValue(i, j) === 'gibrid') {
                         <div class="item mb-2">
                           <label class="block text-sm font-medium mb-2">Video yuklash</label>
                           <app-upload-file
@@ -278,6 +279,35 @@
                             (fileSelected)="onVideoSelected($event, i, j)"
                           ></app-upload-file>
                         </div>
+                        <!-- @if (getServerVideoUrl(i, j)) {
+                          <div class="item mb-2">
+                            <video
+                              class="w-full max-w-xl rounded border"
+                              [src]="getServerVideoUrl(i, j)!"
+                              controls
+                            ></video>
+                          </div>
+                        } -->
+                      }
+
+                      @if (getPartTypeValue(i, j) === 'youtube' || getPartTypeValue(i, j) === 'gibrid') {
+                        <div class="item mb-2">
+                          <mat-form-field appearance="outline" class="w-full">
+                            <mat-label>YouTube link</mat-label>
+                            <input matInput formControlName="youtube_link" />
+                          </mat-form-field>
+                        </div>
+                        @if (getYoutubeEmbedUrl(i, j)) {
+                          <div class="item mb-2">
+                            <iframe
+                              class="w-full max-w-xl aspect-video rounded border"
+                              [src]="getYoutubeEmbedUrl(i, j)!"
+                              frameborder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowfullscreen
+                            ></iframe>
+                          </div>
+                        }
                       }
 
                       <!-- Text Content (if type is text) -->

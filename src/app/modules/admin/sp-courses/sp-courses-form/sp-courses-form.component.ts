@@ -26,6 +26,8 @@ import { SpCoursesService } from '../common/sp-courses.service'
 import { environment } from 'environments/environment'
 import { COMMA, ENTER } from '@angular/cdk/keycodes'
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips'
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
+import { UploadFileService } from 'app/shared/components/upload-file/common/upload-file.service'
 
 @Component({
   selector: 'app-sp-courses-form',
@@ -51,6 +53,8 @@ export class SpCoursesFormComponent implements OnInit {
   private $categoryService = inject(SpCategoryService)
   private $levelService = inject(SpLevelService)
   private $cdr = inject(ChangeDetectorRef)
+  private sanitizer = inject(DomSanitizer)
+  private uploadFileService = inject(UploadFileService)
   private route = inject(ActivatedRoute)
   private router = inject(Router)
   fb = inject(FormBuilder)
@@ -168,13 +172,25 @@ export class SpCoursesFormComponent implements OnInit {
         if (module.sp_courses_module_parts?.length) {
           const partsArray = moduleGroup.get('sp_courses_module_parts') as FormArray
           module.sp_courses_module_parts.forEach((part) => {
+            const contentValue = part.content || ''
+            const youtubeValue = part.youtube_link || ''
+            const isYoutubeUrl =
+              (part.type === 'youtube' || part.type === 'gibrid') &&
+              (this.isProbablyUrl(youtubeValue) || this.isProbablyUrl(contentValue))
             const partGroup = this.fb.group({
               name_uz: [part.name_uz, Validators.required],
               name_kr: [part.name_kr, Validators.required],
               name_ru: [part.name_ru, Validators.required],
               duration: [part.duration, Validators.required],
               type: [part.type, Validators.required],
-              content: [part.content || ''],
+              content: [part.type === 'text' ? contentValue : ''],
+              youtube_link: [
+                this.isProbablyUrl(youtubeValue)
+                  ? youtubeValue
+                  : isYoutubeUrl
+                    ? contentValue
+                    : '',
+              ],
               file_video_id: [part.file_video_id || ''],
             })
 
@@ -272,6 +288,7 @@ export class SpCoursesFormComponent implements OnInit {
       duration: ['', Validators.required],
       type: ['video', Validators.required],
       content: [''],
+      youtube_link: [''],
       file_video_id: [''],
     })
     this.getModulePartsArray(moduleIndex).push(partGroup)
@@ -287,7 +304,23 @@ export class SpCoursesFormComponent implements OnInit {
   submit() {
     if (this.form.valid) {
       const formValue = this.form.value as ISpCourses
-      const payload: Partial<ISpCourses> = { ...formValue }
+      const payload: Partial<ISpCourses> = {
+        ...formValue,
+        sp_courses_modules: (formValue.sp_courses_modules || []).map((module: any) => ({
+          ...module,
+          sp_courses_module_parts: (module.sp_courses_module_parts || []).map((part: any) => {
+            const normalized = { ...part }
+            if (normalized.type !== 'text') normalized.content = ''
+            if (normalized.type === 'video') normalized.youtube_link = ''
+            if (normalized.type === 'youtube') normalized.file_video_id = ''
+            if (normalized.type === 'text') {
+              normalized.youtube_link = ''
+              normalized.file_video_id = ''
+            }
+            return normalized
+          }),
+        })),
+      }
 
       if (this.isEditMode && this.courseId) {
         this.$service.update(this.courseId, payload).subscribe({
@@ -326,5 +359,37 @@ export class SpCoursesFormComponent implements OnInit {
 
   cancel() {
     this.router.navigate(['/sp-courses'])
+  }
+
+  getServerVideoUrl(moduleIndex: number, partIndex: number): string | null {
+    const key = `${moduleIndex}_${partIndex}`
+    const partControl = this.getModulePartsArray(moduleIndex).at(partIndex)
+    const selectedId = this.selectedVideoFiles[key]?.[0]?.id
+    const formId = partControl?.get('file_video_id')?.value
+    const id = selectedId || formId
+    if (!id) return null
+    return `${this.uploadFileService.baseFileUrl}/${id}/stream`
+  }
+
+  getYoutubeEmbedUrl(moduleIndex: number, partIndex: number): SafeResourceUrl | null {
+    const partControl = this.getModulePartsArray(moduleIndex).at(partIndex)
+    const raw = (partControl?.get('youtube_link')?.value || '').trim()
+    if (!raw) return null
+    const videoId = this.extractYoutubeId(raw)
+    if (!videoId) return null
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://www.youtube.com/embed/${videoId}`,
+    )
+  }
+
+  private extractYoutubeId(value: string): string | null {
+    const match = value.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i,
+    )
+    return match ? match[1] : null
+  }
+
+  private isProbablyUrl(value: string): boolean {
+    return /^https?:\/\//i.test(value)
   }
 }

@@ -13,9 +13,9 @@ export const PremiumTypeList = [
 
 export enum LessonType {
   text = 'text',
-  video_youtube = 'video_youtube',
-  video_server = 'video_server',
+  video = 'video',
   gibrid = 'gibrid',
+  youtube = 'youtube',
 }
 
 export interface ISpCourses extends IBaseModel {
@@ -48,6 +48,7 @@ export interface ISpCoursesModule extends IBaseModel {
 
 export interface ISpCoursesModulePart extends IBaseModel {
   file_video_id: string
+  youtube_link?: string
   name_uz: string
   name_ru: string
   name_kr: string
