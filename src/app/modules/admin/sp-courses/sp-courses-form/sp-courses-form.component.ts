@@ -55,6 +55,7 @@ export class SpCoursesFormComponent implements OnInit {
   private $cdr = inject(ChangeDetectorRef)
   private sanitizer = inject(DomSanitizer)
   private uploadFileService = inject(UploadFileService)
+  private youtubeEmbedCache = new Map<string, SafeResourceUrl>()
   private route = inject(ActivatedRoute)
   private router = inject(Router)
   fb = inject(FormBuilder)
@@ -209,6 +210,7 @@ export class SpCoursesFormComponent implements OnInit {
     }
 
     this.$cdr.markForCheck()
+    this.form.markAsPristine()
   }
 
   get modulesArray() {
@@ -227,6 +229,7 @@ export class SpCoursesFormComponent implements OnInit {
       })
       this.selectedImageFiles = []
     }
+    this.form.markAsDirty()
   }
 
   onVideoSelected(files: UploadFileData[], moduleIndex: number, partIndex: number) {
@@ -244,6 +247,7 @@ export class SpCoursesFormComponent implements OnInit {
       })
       this.selectedVideoFiles[key] = []
     }
+    this.form.markAsDirty()
   }
 
   getSelectedVideoFiles(moduleIndex: number, partIndex: number): { id: string }[] {
@@ -264,6 +268,7 @@ export class SpCoursesFormComponent implements OnInit {
       sp_courses_module_parts: this.fb.array([]),
     })
     this.modulesArray.push(moduleGroup)
+    this.form.markAsDirty()
   }
 
   removeModule(index: number) {
@@ -274,6 +279,7 @@ export class SpCoursesFormComponent implements OnInit {
         delete this.selectedVideoFiles[key]
       }
     })
+    this.form.markAsDirty()
   }
 
   getModulePartsArray(moduleIndex: number): FormArray {
@@ -292,6 +298,7 @@ export class SpCoursesFormComponent implements OnInit {
       file_video_id: [''],
     })
     this.getModulePartsArray(moduleIndex).push(partGroup)
+    this.form.markAsDirty()
   }
 
   removeModulePart(moduleIndex: number, partIndex: number) {
@@ -299,6 +306,7 @@ export class SpCoursesFormComponent implements OnInit {
     // Clean up video file for this part
     const key = `${moduleIndex}_${partIndex}`
     delete this.selectedVideoFiles[key]
+    this.form.markAsDirty()
   }
 
   submit() {
@@ -375,11 +383,16 @@ export class SpCoursesFormComponent implements OnInit {
     const partControl = this.getModulePartsArray(moduleIndex).at(partIndex)
     const raw = (partControl?.get('youtube_link')?.value || '').trim()
     if (!raw) return null
+    const cacheKey = raw
+    const cached = this.youtubeEmbedCache.get(cacheKey)
+    if (cached) return cached
     const videoId = this.extractYoutubeId(raw)
     if (!videoId) return null
-    return this.sanitizer.bypassSecurityTrustResourceUrl(
-      `https://www.youtube.com/embed/${videoId}`,
+    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`,
     )
+    this.youtubeEmbedCache.set(cacheKey, safeUrl)
+    return safeUrl
   }
 
   private extractYoutubeId(value: string): string | null {

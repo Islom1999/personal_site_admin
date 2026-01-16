@@ -338,7 +338,7 @@
             mat-raised-button
             color="primary"
             type="submit"
-            [disabled]="form.invalid || !form.dirty"
+            [disabled]="form.invalid || (!isEditMode && !form.dirty)"
           >
             Saqlash
           </button>
