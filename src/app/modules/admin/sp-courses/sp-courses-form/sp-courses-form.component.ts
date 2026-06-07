@@ -26,6 +26,8 @@ import { SpCoursesService } from '../common/sp-courses.service'
 import { environment } from 'environments/environment'
 import { COMMA, ENTER } from '@angular/cdk/keycodes'
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips'
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
+import { UploadFileService } from 'app/shared/components/upload-file/common/upload-file.service'
 
 @Component({
   selector: 'app-sp-courses-form',
@@ -51,6 +53,9 @@ export class SpCoursesFormComponent implements OnInit {
   private $categoryService = inject(SpCategoryService)
   private $levelService = inject(SpLevelService)
   private $cdr = inject(ChangeDetectorRef)
+  private sanitizer = inject(DomSanitizer)
+  private uploadFileService = inject(UploadFileService)
+  private youtubeEmbedCache = new Map<string, SafeResourceUrl>()
   private route = inject(ActivatedRoute)
   private router = inject(Router)
   fb = inject(FormBuilder)
@@ -130,15 +135,38 @@ export class SpCoursesFormComponent implements OnInit {
   }
 
   private loadCourseData(course: ISpCourses) {
-    // Set image file
     if (course.file_image_id) {
       this.selectedImageFiles = [{ id: course.file_image_id }]
     }
+
+    while (this.modulesArray.length) {
+      this.modulesArray.removeAt(0)
+    }
+    this.selectedVideoFiles = {}
+
+    this.form.patchValue({
+      name_uz: course.name_uz,
+      name_kr: course.name_kr,
+      name_ru: course.name_ru,
+      description_uz: course.description_uz,
+      description_kr: course.description_kr,
+      description_ru: course.description_ru,
+      instructor: course.instructor,
+      duration: course.duration,
+      rating: course.rating,
+      premium_type: course.premium_type,
+      price: course.price,
+      tags: course.tags || [],
+      sp_category_id: course.sp_category_id,
+      sp_level_id: course.sp_level_id,
+      file_image_id: course.file_image_id,
+    })
 
     // Load existing modules
     if (course.sp_courses_modules?.length) {
       course.sp_courses_modules.forEach((module) => {
         const moduleGroup = this.fb.group({
+          id: [module.id || ''],
           name_uz: [module.name_uz, Validators.required],
           name_kr: [module.name_kr, Validators.required],
           name_ru: [module.name_ru, Validators.required],
@@ -150,13 +178,26 @@ export class SpCoursesFormComponent implements OnInit {
         if (module.sp_courses_module_parts?.length) {
           const partsArray = moduleGroup.get('sp_courses_module_parts') as FormArray
           module.sp_courses_module_parts.forEach((part) => {
+            const contentValue = part.content || ''
+            const youtubeValue = part.youtube_link || ''
+            const isYoutubeUrl =
+              (part.type === 'youtube' || part.type === 'gibrid') &&
+              (this.isProbablyUrl(youtubeValue) || this.isProbablyUrl(contentValue))
             const partGroup = this.fb.group({
+              id: [part.id || ''],
               name_uz: [part.name_uz, Validators.required],
               name_kr: [part.name_kr, Validators.required],
               name_ru: [part.name_ru, Validators.required],
               duration: [part.duration, Validators.required],
               type: [part.type, Validators.required],
-              content: [part.content || ''],
+              content: [part.type === 'text' ? contentValue : ''],
+              youtube_link: [
+                this.isProbablyUrl(youtubeValue)
+                  ? youtubeValue
+                  : isYoutubeUrl
+                    ? contentValue
+                    : '',
+              ],
               file_video_id: [part.file_video_id || ''],
             })
 
@@ -175,6 +216,7 @@ export class SpCoursesFormComponent implements OnInit {
     }
 
     this.$cdr.markForCheck()
+    this.form.markAsPristine()
   }
 
   get modulesArray() {
@@ -193,6 +235,7 @@ export class SpCoursesFormComponent implements OnInit {
       })
       this.selectedImageFiles = []
     }
+    this.form.markAsDirty()
   }
 
   onVideoSelected(files: UploadFileData[], moduleIndex: number, partIndex: number) {
@@ -210,6 +253,7 @@ export class SpCoursesFormComponent implements OnInit {
       })
       this.selectedVideoFiles[key] = []
     }
+    this.form.markAsDirty()
   }
 
   getSelectedVideoFiles(moduleIndex: number, partIndex: number): { id: string }[] {
@@ -223,6 +267,7 @@ export class SpCoursesFormComponent implements OnInit {
 
   addModule() {
     const moduleGroup = this.fb.group({
+      id: [''],
       name_uz: ['', Validators.required],
       name_kr: ['', Validators.required],
       name_ru: ['', Validators.required],
@@ -230,6 +275,7 @@ export class SpCoursesFormComponent implements OnInit {
       sp_courses_module_parts: this.fb.array([]),
     })
     this.modulesArray.push(moduleGroup)
+    this.form.markAsDirty()
   }
 
   removeModule(index: number) {
@@ -240,6 +286,7 @@ export class SpCoursesFormComponent implements OnInit {
         delete this.selectedVideoFiles[key]
       }
     })
+    this.form.markAsDirty()
   }
 
   getModulePartsArray(moduleIndex: number): FormArray {
@@ -248,15 +295,18 @@ export class SpCoursesFormComponent implements OnInit {
 
   addModulePart(moduleIndex: number) {
     const partGroup = this.fb.group({
+      id: [''],
       name_uz: ['', Validators.required],
       name_kr: ['', Validators.required],
       name_ru: ['', Validators.required],
       duration: ['', Validators.required],
       type: ['video', Validators.required],
       content: [''],
+      youtube_link: [''],
       file_video_id: [''],
     })
     this.getModulePartsArray(moduleIndex).push(partGroup)
+    this.form.markAsDirty()
   }
 
   removeModulePart(moduleIndex: number, partIndex: number) {
@@ -264,12 +314,18 @@ export class SpCoursesFormComponent implements OnInit {
     // Clean up video file for this part
     const key = `${moduleIndex}_${partIndex}`
     delete this.selectedVideoFiles[key]
+    this.form.markAsDirty()
   }
 
   submit() {
     if (this.form.valid) {
       const formValue = this.form.value as ISpCourses
-      const payload: Partial<ISpCourses> = { ...formValue }
+      const payload: Partial<ISpCourses> = {
+        ...formValue,
+        sp_courses_modules: (formValue.sp_courses_modules || []).map((module: any) =>
+          this.normalizeModulePayload(module),
+        ),
+      }
 
       if (this.isEditMode && this.courseId) {
         this.$service.update(this.courseId, payload).subscribe({
@@ -308,5 +364,87 @@ export class SpCoursesFormComponent implements OnInit {
 
   cancel() {
     this.router.navigate(['/sp-courses'])
+  }
+
+  getServerVideoUrl(moduleIndex: number, partIndex: number): string | null {
+    const key = `${moduleIndex}_${partIndex}`
+    const partControl = this.getModulePartsArray(moduleIndex).at(partIndex)
+    const selectedId = this.selectedVideoFiles[key]?.[0]?.id
+    const formId = partControl?.get('file_video_id')?.value
+    const id = selectedId || formId
+    if (!id) return null
+    return `${this.uploadFileService.baseFileUrl}/${id}/stream`
+  }
+
+  getYoutubeEmbedUrl(moduleIndex: number, partIndex: number): SafeResourceUrl | null {
+    const partControl = this.getModulePartsArray(moduleIndex).at(partIndex)
+    const raw = (partControl?.get('youtube_link')?.value || '').trim()
+    if (!raw) return null
+    const cacheKey = raw
+    const cached = this.youtubeEmbedCache.get(cacheKey)
+    if (cached) return cached
+    const videoId = this.extractYoutubeId(raw)
+    if (!videoId) return null
+    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`,
+    )
+    this.youtubeEmbedCache.set(cacheKey, safeUrl)
+    return safeUrl
+  }
+
+  private normalizeModulePayload(module: any) {
+    const normalizedModule: any = {
+      name_uz: module.name_uz,
+      name_kr: module.name_kr,
+      name_ru: module.name_ru,
+      duration: module.duration,
+      sp_courses_module_parts: (module.sp_courses_module_parts || []).map((part: any) =>
+        this.normalizePartPayload(part),
+      ),
+    }
+
+    if (module.id) {
+      normalizedModule.id = module.id
+    }
+
+    return normalizedModule
+  }
+
+  private normalizePartPayload(part: any) {
+    const normalized = {
+      name_uz: part.name_uz,
+      name_kr: part.name_kr,
+      name_ru: part.name_ru,
+      duration: part.duration,
+      type: part.type,
+      content: part.content || '',
+      youtube_link: part.youtube_link || '',
+      file_video_id: part.file_video_id || '',
+    } as any
+
+    if (part.id) {
+      normalized.id = part.id
+    }
+
+    if (normalized.type !== 'text') normalized.content = ''
+    if (normalized.type === 'video') normalized.youtube_link = ''
+    if (normalized.type === 'youtube') normalized.file_video_id = ''
+    if (normalized.type === 'text') {
+      normalized.youtube_link = ''
+      normalized.file_video_id = ''
+    }
+
+    return normalized
+  }
+
+  private extractYoutubeId(value: string): string | null {
+    const match = value.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i,
+    )
+    return match ? match[1] : null
+  }
+
+  private isProbablyUrl(value: string): boolean {
+    return /^https?:\/\//i.test(value)
   }
 }
