@@ -1,32 +1,101 @@
-<app-wrapper-basic [title]="titleTopShow ? title : ''">
+<app-wrapper-basic [title]="title">
   <ng-container titleLeft>
-    <ng-container *ngTemplateOutlet="titleTemplate; context: { $implicit: dt }"></ng-container>
+    <ng-container *ngIf="titleTemplate">
+      <ng-container *ngTemplateOutlet="titleTemplate; context: { $implicit: dt }"></ng-container>
+    </ng-container>
   </ng-container>
+
   <ng-container titleRight>
     <ng-content select="[titleRight]"></ng-content>
     <div class="flex justify-end items-center gap-4">
       @if (showExportButtons) {
         <button
-          pButton
-          severity="secondary"
-          class="btn btn-secondary"
-          icon="pi pi-file-excel"
-          title="Excel"
-          (click)="exportTableToExcel()"
-        ></button>
-        <button
-          pButton
-          severity="secondary"
-          class="btn btn-secondary"
-          icon="pi pi-file-export"
-          title="CSV"
-          (click)="dt?.exportCSV()"
-        ></button>
+          mat-icon-button
+          color="primary"
+          type="button"
+          (click)="exportToExcel()"
+          aria-label="Excelga eksport qilish"
+        >
+          <mat-icon>file_download</mat-icon>
+        </button>
+        <button mat-icon-button type="button" aria-label="CSV eksport qilish">
+          <mat-icon>file_upload</mat-icon>
+        </button>
       }
     </div>
   </ng-container>
+
   <div body>
-    <ng-container *ngTemplateOutlet="templateFilters; context: { $implicit: dt }"></ng-container>
+    <ng-container *ngIf="templateFilters">
+      <ng-container *ngTemplateOutlet="templateFilters; context: { $implicit: dt }"></ng-container>
+    </ng-container>
+
+    @if (filterableColumns.length) {
+      <form
+        [formGroup]="filterForm"
+        class="grid gap-3 mb-6 md:grid-cols-2 xl:grid-cols-3 bg-white border border-gray-200 rounded-2xl p-4"
+      >
+        @for (column of filterableColumns; track column.field) {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>{{ getFilterLabel(column) }}</mat-label>
+            @switch (column.filterType) {
+              @case ('select') {
+                <mat-select
+                  [formControlName]="column.field"
+                  [placeholder]="column.filterPlaceholder || getFilterLabel(column)"
+                >
+                  <mat-option [value]="">Barchasi</mat-option>
+                  @for (option of column.filterOptions || []; track option.value ?? option.label) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              }
+              @case ('boolean') {
+                <mat-select
+                  [formControlName]="column.field"
+                  [placeholder]="column.filterPlaceholder || getFilterLabel(column)"
+                >
+                  <mat-option [value]="">Barchasi</mat-option>
+                  <mat-option value="true">Ha</mat-option>
+                  <mat-option value="false">Yo'q</mat-option>
+                </mat-select>
+              }
+              @default {
+                <div class="flex justify-between">
+                  <input
+                    matInput
+                    [formControlName]="column.field"
+                    [placeholder]="column.filterPlaceholder || getFilterLabel(column)"
+                    type="text"
+                  />
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matSuffix
+                    aria-label="Filterni tozalash"
+                    (click)="clearSingleFilter(column.field)"
+                    *ngIf="filterForm.get(column.field)?.value"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              }
+            }
+          </mat-form-field>
+        }
+
+        <div class="flex items-center justify-end gap-2 md:col-span-2 xl:col-span-3">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetFilters()"
+            [disabled]="!hasActiveFilters"
+          >
+            Filtrlarni tozalash
+          </button>
+        </div>
+      </form>
+    }
 
     <div>
       <div class="header flex justify-between items-center my-2">
