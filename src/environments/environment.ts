@@ -1,3 +1,3 @@
 export const environment = {
-  endpoint: 'https://api.personal.topsites.uz/api',
+  endpoint: 'https://api.kompetensiya2025.uz/api',
 }
